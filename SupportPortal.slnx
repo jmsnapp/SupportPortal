@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Documentation/" />
+  <Project Path="SupportPortalAPI/SupportPortalAPI.csproj" />
+  <Project Path="SupportPortalDB/SupportPortalDB.sqlproj" Id="a2cdf5f6-5e7e-4d80-9f8e-cf3513bd36b8">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="SupportPortalDomain/SupportPortalDomain.csproj" />
+  <Project Path="SupportPortalInfrastructure/SupportPortalInfrastructure.csproj" />
+  <Project Path="SupportPortalTests/SupportPortalTests.csproj" />
+  <Project Path="SupportPortalUI/SupportPortalUI.csproj" />
+</Solution>
