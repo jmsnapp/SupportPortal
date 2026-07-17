@@ -59,3 +59,5 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 /.vs
+/SupportPortalDB/SupportPortalDB.dbmdl
+/SupportPortalDB/SupportPortalDB.jfm
