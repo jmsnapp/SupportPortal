@@ -1,5 +1,10 @@
 <Solution>
-  <Folder Name="/Documentation/" />
+  <Folder Name="/Documentation/">
+    <File Path="Documentation/Initial_Specification.md" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="SupportPortalAPI/SupportPortalAPI.csproj" />
   <Project Path="SupportPortalDB/SupportPortalDB.sqlproj" Id="a2cdf5f6-5e7e-4d80-9f8e-cf3513bd36b8">
     <Build />

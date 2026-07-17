@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
 
         // Register specialized repositories here
         services.AddScoped<IProjectNoteRepository, ProjectNoteRepository>();
+        services.AddScoped<ITicketNoteRepository, TicketNoteRepository>();
 
         return services;
     }
