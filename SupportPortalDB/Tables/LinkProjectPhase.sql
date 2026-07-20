@@ -3,7 +3,7 @@
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [ProjectId] BIGINT NOT NULL, 
     [PhaseId] BIGINT NOT NULL, 
-    [Percentage] NCHAR(10) NULL, 
+    [Percentage] DECIMAL NULL, 
     [Order] INT NULL, 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     CONSTRAINT [FK_LinkProjectPhase_ToProject] FOREIGN KEY ([ProjectId]) REFERENCES [dbo].[Projects]([Id]), 
