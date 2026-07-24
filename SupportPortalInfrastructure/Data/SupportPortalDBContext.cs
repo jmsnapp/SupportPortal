@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SupportPortalInfrastructure.Models;
+using SupportPortalInfrastructure.Entities;
 
 namespace SupportPortalInfrastructure.Data;
 
@@ -10,21 +10,21 @@ public class SupportPortalDBContext : DbContext
     {
     }
 
-    public DbSet<Industry> Industries { get; set; } = null!;
-    public DbSet<Customer> Customers { get; set; } = null!;
-    public DbSet<Project> Projects { get; set; } = null!;
-    public DbSet<Phase> Phases { get; set; } = null!;
-    public DbSet<LinkProjectPhase> LinkProjectPhases { get; set; } = null!;
-    public DbSet<Integration> Integrations { get; set; } = null!;
-    public DbSet<IntegrationStatus> IntegrationStatuses { get; set; } = null!;
-    public DbSet<IntegrationType> IntegrationTypes { get; set; } = null!;
-    public DbSet<IntegrationError> IntegrationErrors { get; set; } = null!;
-    public DbSet<ProjectNote> ProjectNotes { get; set; } = null!;
-    public DbSet<Severity> Severities { get; set; } = null!;
-    public DbSet<SupportStatus> SupportStatuses { get; set; } = null!;
-    public DbSet<Ticket> Tickets { get; set; } = null!;
-    public DbSet<Escalation> Escalations { get; set; } = null!;
-    public DbSet<TicketNote> TicketNotes { get; set; } = null!;
+    public DbSet<IndustryEntity> Industries { get; set; } = null!;
+    public DbSet<CustomerEntity> Customers { get; set; } = null!;
+    public DbSet<ProjectEntity> Projects { get; set; } = null!;
+    public DbSet<PhaseEntity> Phases { get; set; } = null!;
+    public DbSet<LinkProjectPhaseEntity> LinkProjectPhases { get; set; } = null!;
+    public DbSet<IntegrationEntity> Integrations { get; set; } = null!;
+    public DbSet<IntegrationStatusEntity> IntegrationStatuses { get; set; } = null!;
+    public DbSet<IntegrationTypeEntity> IntegrationTypes { get; set; } = null!;
+    public DbSet<IntegrationErrorEntity> IntegrationErrors { get; set; } = null!;
+    public DbSet<ProjectNoteEntity> ProjectNotes { get; set; } = null!;
+    public DbSet<SeverityEntity> Severities { get; set; } = null!;
+    public DbSet<SupportStatusEntity> SupportStatuses { get; set; } = null!;
+    public DbSet<TicketEntity> Tickets { get; set; } = null!;
+    public DbSet<EscalationEntity> Escalations { get; set; } = null!;
+    public DbSet<TicketNoteEntity> TicketNotes { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

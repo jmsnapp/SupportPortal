@@ -6,3 +6,7 @@
     [Deleted] BIT NOT NULL DEFAULT 0, 
     CONSTRAINT [AK_SupportStatuses_Name] UNIQUE ([Name])
 )
+
+GO
+
+CREATE INDEX [IX_SupportStatuses_Deleted] ON [dbo].[SupportStatuses] ([Deleted])

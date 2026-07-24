@@ -1,9 +1,9 @@
-using SupportPortalInfrastructure.Models;
+using SupportPortalInfrastructure.Entities;
 using System.Threading;
 
 namespace SupportPortalInfrastructure.Repositories;
 
-public interface ITicketNoteRepository : IGenericRepository<TicketNote>
+public interface ITicketNoteRepository : IGenericRepository<TicketNoteEntity>
 {
-    Task<IEnumerable<TicketNote>> GetByTicketIdAsync(int ticketId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TicketNoteEntity>> GetByTicketIdAsync(int ticketId, CancellationToken cancellationToken = default);
 }

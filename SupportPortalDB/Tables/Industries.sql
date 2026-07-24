@@ -6,3 +6,7 @@
     [Deleted] BIT NOT NULL DEFAULT 0, 
     CONSTRAINT [AK_Industries_Name] UNIQUE ([Name])
 )
+
+GO
+
+CREATE INDEX [IX_Industries_Deleted] ON [dbo].[Industries] ([Deleted])

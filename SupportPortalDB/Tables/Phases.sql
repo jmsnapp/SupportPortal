@@ -6,3 +6,7 @@
     [Deleted] BIT NOT NULL DEFAULT 0, 
     CONSTRAINT [AK_Phase_Name] UNIQUE ([Name])
 )
+
+GO
+
+CREATE INDEX [IX_Phases_Deleted] ON [dbo].[Phases] ([Deleted])

@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace SupportPortalInfrastructure.Repositories;
 
-public class ProjectNoteRepository : GenericRepository<ProjectNoteEntity>, IProjectNoteRepository
+public class LinkProjectPhaseRepository : GenericRepository<LinkProjectPhaseEntity>, ILinkProjectPhaseRepository
 {
 
-    public ProjectNoteRepository(SupportPortalDBContext context) : base(context) { }
+    public LinkProjectPhaseRepository(SupportPortalDBContext context) : base(context) { }
 
-    public async Task<IEnumerable<ProjectNoteEntity>> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default) =>
+    public async Task<IEnumerable<LinkProjectPhaseEntity    >> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default) =>
         await _dbSet
             .Where(pn => pn.ProjectId == projectId)
             .ToListAsync(cancellationToken);

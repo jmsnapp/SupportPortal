@@ -6,3 +6,7 @@
     [Deleted] BIT NOT NULL DEFAULT 0, 
     CONSTRAINT [AK_IntegrationTypes_Name] UNIQUE ([Name])
 )
+
+GO
+
+CREATE INDEX [IX_IntegrationTypes_Deleted] ON [dbo].[IntegrationTypes] ([Deleted])

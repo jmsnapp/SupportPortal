@@ -1,9 +1,10 @@
-using SupportPortalInfrastructure.Models;
+using SupportPortalInfrastructure.Entities;
 using System.Threading;
 
 namespace SupportPortalInfrastructure.Repositories;
 
-public interface IProjectNoteRepository : IGenericRepository<ProjectNote>
+public interface IProjectNoteRepository : IGenericRepository<ProjectNoteEntity>
 {
-    Task<IEnumerable<ProjectNote>> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ProjectNoteEntity>> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default);
+
 }

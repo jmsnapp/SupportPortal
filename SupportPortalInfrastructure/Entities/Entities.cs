@@ -1,9 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SupportPortalInfrastructure.Models;
+namespace SupportPortalInfrastructure.Entities;
 
-public class PortalObject
+public class PortalEntity
 {
     [Key]
     public int Id { get; set; }
@@ -14,7 +14,7 @@ public class PortalObject
 
     public bool Deleted { get; set; }
 
-    public PortalObject()
+    public PortalEntity()
     {
         Id = 0;
         Name = string.Empty;
@@ -25,9 +25,9 @@ public class PortalObject
 
 }
 
-public class Customer : PortalObject
+public class CustomerEntity : PortalEntity
 {
-    public Industry Industry { get; set; }
+    public int IndustryId { get; set; }
 
     public string PrimaryContact { get; set; }
 
@@ -39,14 +39,14 @@ public class Customer : PortalObject
 
     public DateTime CreatedDate { get; set; }
 
-    public Customer()
+    public CustomerEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
         base.Description = string.Empty;
         base.Deleted = false;
 
-        Industry = new Industry();
+        IndustryId = 0;
         PrimaryContact = string.Empty;
         PrimaryContactEmail = string.Empty;
         TechnicalContact = string.Empty;
@@ -57,7 +57,7 @@ public class Customer : PortalObject
 
 }
 
-public class Escalation  : PortalObject
+public class EscalationEntity  : PortalEntity
 {
     public string ProblemSummary { get; set; }
 
@@ -67,7 +67,7 @@ public class Escalation  : PortalObject
 
     public string? RecommendedAction { get; set; }
 
-    public Escalation()
+    public EscalationEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
@@ -83,16 +83,16 @@ public class Escalation  : PortalObject
 
 }
 
-public class Industry : PortalObject
+public class IndustryEntity : PortalEntity
 { }
 
-public class Integration : PortalObject
+public class IntegrationEntity : PortalEntity
 {
-    public Customer Customer { get; set; }
+    public int CustomerId { get; set; }
 
-    public IntegrationType Type { get; set; }
+    public int IntegrationTypeId { get; set; }
 
-    public IntegrationStatus CurrentStatus { get; set; }
+    public int CurrentStatusId { get; set; }
 
     public DateTime? LastSuccessfulSync { get; set; }
 
@@ -100,16 +100,16 @@ public class Integration : PortalObject
 
     public int RetryCount { get; set; }
 
-    public Integration()
+    public IntegrationEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
         base.Description = string.Empty;
         base.Deleted = false;
 
-        Customer = new Customer();
-        Type = new IntegrationType();
-        CurrentStatus = new IntegrationStatus();
+        CustomerId = 0;
+        IntegrationTypeId = 0;
+        CurrentStatusId = 0;
         LastSuccessfulSync = null;
         LastFailedSync = null;
         RetryCount = 0;
@@ -118,9 +118,9 @@ public class Integration : PortalObject
 
 }
 
-public class IntegrationError : PortalObject
+public class IntegrationErrorEntity : PortalEntity
 {
-    public Integration Integration { get; set; }
+    public int IntegrationId { get; set; }
 
     public string? ErrorMessage { get; set; }
 
@@ -128,14 +128,14 @@ public class IntegrationError : PortalObject
 
     public DateTime ErrorTime { get; set; }
 
-    public IntegrationError()
+    public IntegrationErrorEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
         base.Description = string.Empty;
         base.Deleted = false;
 
-        Integration = new Integration();
+        IntegrationId = 0;
         ErrorMessage = string.Empty;
         StackTrace = string.Empty;
         ErrorTime = DateTime.Now;
@@ -144,23 +144,23 @@ public class IntegrationError : PortalObject
 
 }
 
-public class IntegrationStatus : PortalObject
+public class IntegrationStatusEntity : PortalEntity
 { }
 
-public class IntegrationType : PortalObject
+public class IntegrationTypeEntity : PortalEntity
 { }
 
-public class ProjectPhase : PortalObject
+public class LinkProjectPhaseEntity : PortalEntity
 {
     public int ProjectId { get; set; }
 
-    public Phase Phase { get; set; }
+    public int PhaseId { get; set; }
 
     public decimal? Percentage { get; set; }
 
     public int Order { get; set; }
 
-    public ProjectPhase()
+    public LinkProjectPhaseEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
@@ -168,7 +168,7 @@ public class ProjectPhase : PortalObject
         base.Deleted = false;
 
         ProjectId = 0;
-        Phase = new Phase();
+        PhaseId = 0;
         Percentage = 0;
         Order = 0;
 
@@ -176,44 +176,38 @@ public class ProjectPhase : PortalObject
 
 }
 
-public class Phase : PortalObject
+public class PhaseEntity : PortalEntity
 { }
 
-public class Project : PortalObject
+public class ProjectEntity : PortalEntity
 {
-    public Phase CurrentPhase { get; set; }
+    public int CurrentPhase { get; set; }
 
     public DateTime TargetGoLive { get; set; }
 
     public DateTime? ActualGoLive { get; set; }
 
-    public List<ProjectPhase> Phases { get; set; }
-
-    public List<ProjectNote> Notes { get; set; }
-
-    public Project()
+    public ProjectEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
         base.Description = string.Empty;
         base.Deleted = false;
 
-        CurrentPhase = new Phase();
+        CurrentPhase = 0;
         TargetGoLive = DateTime.Now;
-        Phases = new List<ProjectPhase>();
-        Notes = new List<ProjectNote>();
 
     }
 
 }
 
-public class ProjectNote : PortalObject
-{ 
+public class ProjectNoteEntity : PortalEntity
+{
     public int ProjectId { get; set; }
-    
+
     public string Note { get; set; }
 
-    public ProjectNote()
+    public ProjectNoteEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
@@ -227,22 +221,22 @@ public class ProjectNote : PortalObject
 
 }
 
-public class Severity : PortalObject
+public class SeverityEntity : PortalEntity
 { }
 
-public class SupportStatus : PortalObject
+public class SupportStatusEntity : PortalEntity
 { }
 
-public class Ticket : PortalObject
+public class TicketEntity : PortalEntity
 {
 
-    public Customer Customer { get; set; }
+    public int CustomerId { get; set; }
 
-    public Integration Integration { get; set; }
+    public int IntegrationId { get; set; }
 
-    public Severity Severity { get; set; }
+    public int SeverityId { get; set; }
 
-    public Escalation? Escalation { get; set; }
+    public int? EscalationId { get; set; }
 
     public string? Reproduce { get; set; }
 
@@ -256,38 +250,35 @@ public class Ticket : PortalObject
 
     public string? Resolution { get; set; }
 
-    public List<TicketNote> Notes { get; set; }
-
-    public Ticket()
+    public TicketEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
         base.Description = string.Empty;
         base.Deleted = false;
 
-        Customer = new Customer();
-        Integration = new Integration();
-        Severity = new Severity();
-        Escalation = null;
+        CustomerId = 0;
+        IntegrationId = 0;
+        SeverityId = 0;
+        EscalationId = null;
         Reproduce = string.Empty;
         ReportedBy = string.Empty;
         AssignedTo = string.Empty;
         CreatedDate = DateTime.Now;
         ResolutionDate = null;
         Resolution = string.Empty;
-        Notes = new List<TicketNote>();
 
     }
 
 }
 
-public class TicketNote : PortalObject
+public class TicketNoteEntity : PortalEntity
 {
     public int TicketId { get; set; }
 
     public string Note { get; set; }
 
-    public TicketNote()
+    public TicketNoteEntity()
     {
         base.Id = 0;
         base.Name = string.Empty;
