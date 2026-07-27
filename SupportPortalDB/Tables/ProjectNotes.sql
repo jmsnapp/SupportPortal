@@ -2,11 +2,11 @@
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
-    [Description] NVARCHAR(255) NULL, 
+    [Description] NVARCHAR(255) NOT NULL DEFAULT '', 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [ProjectId] BIGINT NOT NULL, 
-    [Note] NVARCHAR(MAX) NULL, 
-    [CreateTime] DATETIME NOT NULL, 
+    [Note] NVARCHAR(MAX) NOT NULL DEFAULT '', 
+    [CreateTime] DATETIME NOT NULL DEFAULT '01/01/1900 00:00:00.000', 
     CONSTRAINT [AK_ProjectNotes_Name] UNIQUE ([Name]), 
     CONSTRAINT [FK_ProjectNotes_ToProject] FOREIGN KEY ([ProjectId]) REFERENCES [Projects]([Id]), 
 )

@@ -2,12 +2,12 @@
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
-    [Description] NVARCHAR(255) NULL, 
+    [Description] NVARCHAR(255) NOT NULL DEFAULT '', 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [ProjectId] BIGINT NOT NULL, 
     [PhaseId] BIGINT NOT NULL, 
-    [Percentage] DECIMAL NULL, 
-    [Order] INT NULL, 
+    [Percentage] DECIMAL NOT NULL DEFAULT 0, 
+    [Order] INT NOT NULL DEFAULT 0, 
     CONSTRAINT [FK_LinkProjectPhase_ToProject] FOREIGN KEY ([ProjectId]) REFERENCES [dbo].[Projects]([Id]), 
     CONSTRAINT [FK_LinkProjectPhase_ToPhase] FOREIGN KEY ([PhaseId]) REFERENCES [dbo].[Phases]([Id]), 
     CONSTRAINT [AK_LinkProjectPhase_ProjectPhase] UNIQUE ([ProjectId], [PhaseId])
