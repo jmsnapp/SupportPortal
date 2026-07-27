@@ -113,6 +113,7 @@ namespace SupportPortalInfrastructure
                                              IGenericRepository<IndustryEntity> industryRepository,
                                              IGenericRepository<IntegrationTypeEntity> integrationTypeRepository,
                                              IGenericRepository<IntegrationStatusEntity> integrationStatusRepository,
+                                             IGenericRepository<SupportStatusEntity> supportStatusRepository,
                                              ITicketNoteRepository ticketNoteRepository)
         {
             Ticket ticket = new Ticket();
@@ -130,6 +131,9 @@ namespace SupportPortalInfrastructure
 
             SeverityEntity severityEntity = severityRepository.GetByIdAsync(entity.SeverityId).Result;
             MapPortalEntity2Object(severityEntity, ticket.Severity);
+
+            SupportStatusEntity statusEntity = supportStatusRepository.GetByIdAsync(entity.SupportStatusId).Result;
+            MapPortalEntity2Object(statusEntity, ticket.Status);
 
             if (entity.EscalationId.HasValue)
             {
@@ -282,14 +286,20 @@ namespace SupportPortalInfrastructure
 
             entity.CustomerId = obj.Customer.Id;
             entity.IntegrationId = obj.Integration.Id;
-            entity.SeverityId = obj.Severity.Id;
-            entity.EscalationId = obj.Escalation?.Id;
+            entity.SeverityId = obj.Severity.Id;          
+            entity.SupportStatusId = obj.Status.Id;
             entity.Reproduce = obj.Reproduce;
             entity.ReportedBy = obj.ReportedBy;
             entity.AssignedTo = obj.AssignedTo;
             entity.CreatedDate = obj.CreatedDate;
             entity.ResolutionDate = obj.ResolutionDate;
             entity.Resolution = obj.Resolution;
+
+            if (obj.Escalation != null)
+                entity.EscalationId = obj.Escalation?.Id;
+
+            else
+                entity.EscalationId = null;
 
             return entity;
 

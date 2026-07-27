@@ -244,6 +244,8 @@ public class Ticket : PortalObject
 
     public Escalation? Escalation { get; set; }
 
+    public SupportStatus Status { get; set; }
+
     public string? Reproduce { get; set; }
 
     public string ReportedBy { get; set; }
@@ -269,6 +271,7 @@ public class Ticket : PortalObject
         Integration = new Integration();
         Severity = new Severity();
         Escalation = null;
+        Status = new SupportStatus();
         Reproduce = string.Empty;
         ReportedBy = string.Empty;
         AssignedTo = string.Empty;

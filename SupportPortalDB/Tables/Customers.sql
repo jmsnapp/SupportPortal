@@ -2,7 +2,7 @@
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
-    [Description] NVARCHAR(253) NULL, 
+    [Description] NVARCHAR(255) NULL, 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [IndustryId] BIGINT NOT NULL DEFAULT 0, 
     [PrimaryContactName] NVARCHAR(63) NOT NULL, 
@@ -17,3 +17,7 @@
 GO
 
 CREATE INDEX [IX_Customers_Deleted] ON [dbo].[Customers] ([Deleted])
+
+GO
+
+CREATE INDEX [IX_Customers_Industry] ON [dbo].[Customers] ([IndustryId])

@@ -2,12 +2,13 @@
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
-    [Description] NVARCHAR(253) NULL, 
+    [Description] NVARCHAR(255) NULL, 
     [Deleted] BIT NOT NULL DEFAULT 0, 
-    [ProjectId] BIGINT NULL, 
+    [ProjectId] BIGINT NOT NULL, 
     [Note] NVARCHAR(MAX) NULL, 
     [CreateTime] DATETIME NOT NULL, 
     CONSTRAINT [AK_ProjectNotes_Name] UNIQUE ([Name]), 
+    CONSTRAINT [FK_ProjectNotes_ToProject] FOREIGN KEY ([ProjectId]) REFERENCES [Projects]([Id]), 
 )
 
 GO

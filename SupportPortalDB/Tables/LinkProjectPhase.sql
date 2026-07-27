@@ -2,7 +2,7 @@
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
-    [Description] NVARCHAR(253) NULL, 
+    [Description] NVARCHAR(255) NULL, 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [ProjectId] BIGINT NOT NULL, 
     [PhaseId] BIGINT NOT NULL, 
@@ -20,3 +20,7 @@ CREATE INDEX [IX_LinkProjectPhase_ProjectId] ON [dbo].[LinkProjectPhase] ([Proje
 GO
 
 CREATE INDEX [IX_LinkProjectPhase_Phase] ON [dbo].[LinkProjectPhase] ([PhaseId])
+
+GO
+
+CREATE INDEX [IX_LinkProjectPhase_Deleted] ON [dbo].[LinkProjectPhase] ([Deleted])

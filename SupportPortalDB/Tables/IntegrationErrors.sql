@@ -2,7 +2,7 @@
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
-    [Description] NVARCHAR(253) NULL, 
+    [Description] NVARCHAR(255) NULL, 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [IntegrationId] BIGINT NOT NULL, 
     [ErrorMessage] NVARCHAR(1027) NULL, 

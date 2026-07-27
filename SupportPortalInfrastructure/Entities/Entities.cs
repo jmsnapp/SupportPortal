@@ -238,6 +238,8 @@ public class TicketEntity : PortalEntity
 
     public int? EscalationId { get; set; }
 
+    public int SupportStatusId { get; set; }
+
     public string? Reproduce { get; set; }
 
     public string ReportedBy { get; set; }

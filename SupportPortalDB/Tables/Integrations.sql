@@ -27,3 +27,7 @@ CREATE INDEX [IX_Integrations_IntegrationType] ON [dbo].[Integrations] ([Integra
 GO
 
 CREATE INDEX [IX_Integrations_Status] ON [dbo].[Integrations] ([CurrentStatusId])
+
+GO
+
+CREATE INDEX [IX_Integrations_Deleted] ON [dbo].[Integrations] ([Deleted])
