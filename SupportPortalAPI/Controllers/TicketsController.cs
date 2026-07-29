@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
@@ -29,7 +29,7 @@ namespace SupportPortalAPI.Controllers
             IGenericRepository<IntegrationStatusEntity> integrationStatusRepo,
             IGenericRepository<SupportStatusEntity> supportStatusRepo,
             ITicketNoteRepository ticketNoteRepo,
-            Mapper mapper)
+            DBMapper mapper)
             : base(repo, mapper)
         {
             _customerRepo = customerRepo;

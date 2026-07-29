@@ -5,6 +5,6 @@ namespace SupportPortalInfrastructure.Repositories;
 
 public interface IProjectNoteRepository : IGenericRepository<ProjectNoteEntity>
 {
-    Task<IEnumerable<ProjectNoteEntity>> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ProjectNoteEntity>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default);
 
 }

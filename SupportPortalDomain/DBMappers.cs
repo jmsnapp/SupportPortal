@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
-namespace SupportPortalInfrastructure
+namespace SupportPortalDomain
 {
-    public class Mapper
+    public class DBMapper
     {
         public Customer MapCustomerEntity2Customer(CustomerEntity entity, IGenericRepository<IndustryEntity> industryRepository)
         {

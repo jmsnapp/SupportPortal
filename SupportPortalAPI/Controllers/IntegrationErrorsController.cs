@@ -1,12 +1,12 @@
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
 {
-    public class IntegrationErrorsController : GenericController<IntegrationErrorEntity, SupportPortalInfrastructure.Models.IntegrationError>
+    public class IntegrationErrorsController : GenericController<IntegrationErrorEntity, IntegrationError>
     {
-        public IntegrationErrorsController(IGenericRepository<IntegrationErrorEntity> repo, Mapper mapper) : base(repo, mapper) { }
+        public IntegrationErrorsController(IGenericRepository<IntegrationErrorEntity> repo, DBMapper mapper) : base(repo, mapper) { }
     }
 }

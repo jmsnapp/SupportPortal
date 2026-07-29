@@ -11,7 +11,7 @@ public class TicketNoteRepository : GenericRepository<TicketNoteEntity>, ITicket
 {
     public TicketNoteRepository(SupportPortalDBContext context) : base(context) { }
 
-    public async Task<IEnumerable<TicketNoteEntity >> GetByTicketIdAsync(int ticketId, CancellationToken cancellationToken = default) =>
+    public async Task<IEnumerable<TicketNoteEntity >> GetByTicketIdAsync(Int64 ticketId, CancellationToken cancellationToken = default) =>
         await _dbSet
             .Where(tn => tn.TicketId == ticketId)
             .ToListAsync(cancellationToken);

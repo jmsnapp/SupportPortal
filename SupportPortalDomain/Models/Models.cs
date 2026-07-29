@@ -1,12 +1,12 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace SupportPortalInfrastructure.Models;
+namespace SupportPortalDomain.Models;
 
 public class PortalObject
 {
     [Key]
-    public int Id { get; set; }
+    public Int64 Id { get; set; }
 
     public string Name { get; set; }
 
@@ -152,7 +152,7 @@ public class IntegrationType : PortalObject
 
 public class ProjectPhase : PortalObject
 {
-    public int ProjectId { get; set; }
+    public Int64 ProjectId { get; set; }
 
     public Phase Phase { get; set; }
 
@@ -209,7 +209,7 @@ public class Project : PortalObject
 
 public class ProjectNote : PortalObject
 { 
-    public int ProjectId { get; set; }
+    public Int64 ProjectId { get; set; }
     
     public string Note { get; set; }
 
@@ -286,7 +286,7 @@ public class Ticket : PortalObject
 
 public class TicketNote : PortalObject
 {
-    public int TicketId { get; set; }
+    public Int64 TicketId { get; set; }
 
     public string Note { get; set; }
 

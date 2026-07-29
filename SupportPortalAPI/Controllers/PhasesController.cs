@@ -1,12 +1,12 @@
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
 {
     public class PhasesController : GenericController<PhaseEntity, Phase>
     {
-        public PhasesController(IGenericRepository<PhaseEntity> repo, Mapper mapper) : base(repo, mapper) { }
+        public PhasesController(IGenericRepository<PhaseEntity> repo, DBMapper mapper) : base(repo, mapper) { }
     }
 }

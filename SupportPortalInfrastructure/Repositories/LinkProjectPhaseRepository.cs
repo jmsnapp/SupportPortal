@@ -12,7 +12,7 @@ public class LinkProjectPhaseRepository : GenericRepository<LinkProjectPhaseEnti
 
     public LinkProjectPhaseRepository(SupportPortalDBContext context) : base(context) { }
 
-    public async Task<IEnumerable<LinkProjectPhaseEntity    >> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default) =>
+    public async Task<IEnumerable<LinkProjectPhaseEntity    >> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default) =>
         await _dbSet
             .Where(pn => pn.ProjectId == projectId)
             .ToListAsync(cancellationToken);

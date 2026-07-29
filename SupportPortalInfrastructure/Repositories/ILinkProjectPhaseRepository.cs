@@ -5,6 +5,6 @@ namespace SupportPortalInfrastructure.Repositories;
 
 public interface ILinkProjectPhaseRepository : IGenericRepository<LinkProjectPhaseEntity>
 {
-    Task<IEnumerable<LinkProjectPhaseEntity>> GetByProjectIdAsync(int projectId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<LinkProjectPhaseEntity>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default);
 
 }

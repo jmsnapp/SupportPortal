@@ -1,12 +1,12 @@
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
 {
     public class IntegrationStatusesController : GenericController<IntegrationStatusEntity, IntegrationStatus>
     {
-        public IntegrationStatusesController(IGenericRepository<IntegrationStatusEntity> repo, Mapper mapper) : base(repo, mapper) { }
+        public IntegrationStatusesController(IGenericRepository<IntegrationStatusEntity> repo, DBMapper mapper) : base(repo, mapper) { }
     }
 }

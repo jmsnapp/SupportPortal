@@ -1,9 +1,11 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SupportPortalAPI.Controllers
 {
@@ -11,7 +13,7 @@ namespace SupportPortalAPI.Controllers
     {
         private readonly IGenericRepository<IndustryEntity> _industryRepo;
 
-        public CustomersController(IGenericRepository<CustomerEntity> repo, IGenericRepository<IndustryEntity> industryRepo, Mapper mapper)
+        public CustomersController(IGenericRepository<CustomerEntity> repo, IGenericRepository<IndustryEntity> industryRepo, DBMapper mapper)
             : base(repo, mapper)
         {
             _industryRepo = industryRepo;

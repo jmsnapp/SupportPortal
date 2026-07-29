@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
@@ -20,7 +20,7 @@ namespace SupportPortalAPI.Controllers
             IGenericRepository<IntegrationStatusEntity> integrationStatusRepo,
             IGenericRepository<CustomerEntity> customerRepo,
             IGenericRepository<IndustryEntity> industryRepo,
-            Mapper mapper)
+            DBMapper mapper)
             : base(repo, mapper)
         {
             _integrationTypeRepo = integrationTypeRepo;

@@ -5,5 +5,5 @@ namespace SupportPortalInfrastructure.Repositories;
 
 public interface ITicketNoteRepository : IGenericRepository<TicketNoteEntity>
 {
-    Task<IEnumerable<TicketNoteEntity>> GetByTicketIdAsync(int ticketId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<TicketNoteEntity>> GetByTicketIdAsync(Int64 ticketId, CancellationToken cancellationToken = default);
 }

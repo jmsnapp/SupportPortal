@@ -6,7 +6,7 @@ namespace SupportPortalInfrastructure.Entities;
 public class PortalEntity
 {
     [Key]
-    public int Id { get; set; }
+    public Int64 Id { get; set; }
 
     public string Name { get; set; }
 
@@ -27,7 +27,7 @@ public class PortalEntity
 
 public class CustomerEntity : PortalEntity
 {
-    public int IndustryId { get; set; }
+    public Int64 IndustryId { get; set; }
 
     public string PrimaryContact { get; set; }
 
@@ -88,11 +88,11 @@ public class IndustryEntity : PortalEntity
 
 public class IntegrationEntity : PortalEntity
 {
-    public int CustomerId { get; set; }
+    public Int64 CustomerId { get; set; }
 
-    public int IntegrationTypeId { get; set; }
+    public Int64 IntegrationTypeId { get; set; }
 
-    public int CurrentStatusId { get; set; }
+    public Int64 CurrentStatusId { get; set; }
 
     public DateTime? LastSuccessfulSync { get; set; }
 
@@ -120,7 +120,7 @@ public class IntegrationEntity : PortalEntity
 
 public class IntegrationErrorEntity : PortalEntity
 {
-    public int IntegrationId { get; set; }
+    public Int64 IntegrationId { get; set; }
 
     public string? ErrorMessage { get; set; }
 
@@ -152,9 +152,9 @@ public class IntegrationTypeEntity : PortalEntity
 
 public class LinkProjectPhaseEntity : PortalEntity
 {
-    public int ProjectId { get; set; }
+    public Int64 ProjectId { get; set; }
 
-    public int PhaseId { get; set; }
+    public Int64 PhaseId { get; set; }
 
     public decimal? Percentage { get; set; }
 
@@ -181,7 +181,7 @@ public class PhaseEntity : PortalEntity
 
 public class ProjectEntity : PortalEntity
 {
-    public int CurrentPhase { get; set; }
+    public Int64 CurrentPhase { get; set; }
 
     public DateTime TargetGoLive { get; set; }
 
@@ -203,7 +203,7 @@ public class ProjectEntity : PortalEntity
 
 public class ProjectNoteEntity : PortalEntity
 {
-    public int ProjectId { get; set; }
+    public Int64 ProjectId { get; set; }
 
     public string Note { get; set; }
 
@@ -230,15 +230,15 @@ public class SupportStatusEntity : PortalEntity
 public class TicketEntity : PortalEntity
 {
 
-    public int CustomerId { get; set; }
+    public Int64 CustomerId { get; set; }
 
-    public int IntegrationId { get; set; }
+    public Int64 IntegrationId { get; set; }
 
-    public int SeverityId { get; set; }
+    public Int64 SeverityId { get; set; }
 
-    public int? EscalationId { get; set; }
+    public Int64? EscalationId { get; set; }
 
-    public int SupportStatusId { get; set; }
+    public Int64 SupportStatusId { get; set; }
 
     public string? Reproduce { get; set; }
 
@@ -276,7 +276,7 @@ public class TicketEntity : PortalEntity
 
 public class TicketNoteEntity : PortalEntity
 {
-    public int TicketId { get; set; }
+    public Int64 TicketId { get; set; }
 
     public string Note { get; set; }
 

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
@@ -17,7 +17,7 @@ namespace SupportPortalAPI.Controllers
             ILinkProjectPhaseRepository projectPhaseRepo,
             IGenericRepository<PhaseEntity> phaseRepo,
             IProjectNoteRepository projectNoteRepo,
-            Mapper mapper)
+            DBMapper mapper)
             : base(repo, mapper)
         {
             _projectPhaseRepo = projectPhaseRepo;

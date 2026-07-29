@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
@@ -19,9 +19,9 @@ namespace SupportPortalAPI.Controllers
         where TModel : PortalObject, new()
     {
         protected readonly IGenericRepository<TEntity> _repo;
-        protected readonly Mapper _mapper;
+        protected readonly DBMapper _mapper;
 
-        protected GenericController(IGenericRepository<TEntity> repo, Mapper mapper)
+        protected GenericController(IGenericRepository<TEntity> repo, DBMapper mapper)
         {
             _repo = repo;
             _mapper = mapper;
@@ -97,7 +97,7 @@ namespace SupportPortalAPI.Controllers
         {
             // Default shallow mapping -> map PortalEntity fields into TModel
             var model = new TModel();
-            Mapper.MapPortalEntity2Object(entity, model);
+            DBMapper.MapPortalEntity2Object(entity, model);
             return Task.FromResult(model);
         }
 

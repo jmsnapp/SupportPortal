@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SupportPortalDomain;
 using SupportPortalInfrastructure.Data;
-using SupportPortalInfrastructure;
 using SupportPortalInfrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,12 +13,14 @@ builder.Services.AddDbContext<SupportPortalDBContext>(options =>
 builder.Services.AddRepositories();
 
 // Register the Mapper from SupportPortalInfrastructure
-builder.Services.AddScoped<Mapper>();
+builder.Services.AddScoped<DBMapper>();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseRouting();
 
 if (app.Environment.IsDevelopment())
 {

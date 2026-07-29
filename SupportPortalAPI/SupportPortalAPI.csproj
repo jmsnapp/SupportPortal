@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SupportPortalDomain\SupportPortalDomain.csproj" />
     <ProjectReference Include="..\SupportPortalInfrastructure\SupportPortalInfrastructure.csproj" />
   </ItemGroup>
 

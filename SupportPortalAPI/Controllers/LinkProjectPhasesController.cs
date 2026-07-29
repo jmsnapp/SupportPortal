@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using SupportPortalInfrastructure;
+using SupportPortalDomain;
+using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Models;
 using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
@@ -10,7 +10,7 @@ namespace SupportPortalAPI.Controllers
     {
         private readonly IGenericRepository<PhaseEntity> _phaseRepo;
 
-        public LinkProjectPhasesController(IGenericRepository<LinkProjectPhaseEntity> repo, IGenericRepository<PhaseEntity> phaseRepo, Mapper mapper)
+        public LinkProjectPhasesController(IGenericRepository<LinkProjectPhaseEntity> repo, IGenericRepository<PhaseEntity> phaseRepo, DBMapper mapper)
             : base(repo, mapper)
         {
             _phaseRepo = phaseRepo;
