@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Documentation/">
     <File Path="Documentation/DataDictionary.md" />
+    <File Path="Documentation/Design_Notes.md" />
     <File Path="Documentation/Initial_Specification.md" />
     <File Path="Documentation/SupportPortalDB_ERD.jpg" />
   </Folder>
