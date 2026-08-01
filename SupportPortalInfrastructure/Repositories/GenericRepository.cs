@@ -41,4 +41,5 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         _context.SaveChangesAsync(cancellationToken);
+
 }

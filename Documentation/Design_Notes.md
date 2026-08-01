@@ -1,6 +1,6 @@
 # Design Notes
 
-I have been using Artificial Intelligence (specifically Microsoft CoPilot in Visual Studio) to scaffold the projects in this solution. This has been very useful in setting up the basic project structures and providing a 'first pass' of the basic objects (such as the database table definitions, the Infrastructure entities and models, and the API controllers).  I have still had to go in to modify these bases to fit my style and approaches, but the use of AI has significantly cut down on the time needed to architect all of this out.
+I have been using Artificial Intelligence (specifically Microsoft CoPilot in Visual Studio) to scaffold the projects in this solution. This has been very useful in setting up the basic project structures and providing a 'first pass' of the basic objects (such as the database table definitions, the Infrastructure entities and models, the API controllers, and the Unit Tests).  I have still had to go in to modify these bases to fit my style and approaches, but the use of AI has significantly cut down on the time needed to architect all of this out.
 
 I have also been impressed with the value provided by Microsoft CoPilot in Visual Studio, as I am using the Visual Studio community edition, and am not paying for any extra tokens or resources.  In the process of scaffolding the database project, the infrastructure project, and the API, I did use up all my Inline suggestions, but less than 20% of my Monthly Limit for my copilot context.  Compare that to Anthropic's Claude, where I was not able to revise my resume using another version of the document and my CV without having to purchase their lowest tier service.  I suspect that the difference in value is due to Microsoft using their own MAI models for much of this work, and (very strangely for a technology company in this day and age) passing those savings on to me.
 
@@ -46,7 +46,16 @@ Usually what I would do for a project like this is create a series of stored pro
 
 For complex objects that have foreign keys, I use these basic procedures for the links to the child tables.  That way, if there is a problem in a given stored procedure, I only have to fix it in one location.
 
+# Domain
+
+The Domain project is sparse, as this system is currently a very simple system. I have the domain models defined in there (and those are also very simple due to the straightforward requirements of the system).
+
+I also have the DBMapper class in the Domain project instead of the Infrastructure project. I did this because the DB Mapper takes the Infrastructure entities and maps them to Domain models.  If I decide to add another data source (like an API, for example), I can put that access and it's appropriate entities into the Infrastructure project, then just add an appropriate Mapper class to the Domain project.  That Infrastructure/Domain boundary remains defined across data sources, and layers above the domain (the SupportPortalAPI and eventually the Web UI) are not majorly affected by the new data source, other than their Models can now show data from that new source.
+
 # API
 
+The Application Programming Interface (API) project is a very simple project.  It is a .NET 10 Web API project, and it is the only project that has any external dependencies.  It has a dependency on the Domain project, and it has a dependency on the Infrastructure project.  The Controller classes are just wrappers around the Domain models and provide endpoints that map to the repository methods in the Infrastructure project.
 
 # Application
+
+I have not built out the Application project yet, but it will be a .NET 10 Blazor WebAssembly project.  It will have a dependency on the Domain project, and it will have a dependency on the API project.  The Models in the Application project will be mapped to the Domain models, and the UI will be built using Blazor components that call the API endpoints to get data from the Infrastructure project.

@@ -25,37 +25,44 @@ namespace SupportPortalAPI.Controllers
         {
             _repo = repo;
             _mapper = mapper;
+
         }
 
         // GET api/[controller]/{id}
-        [HttpGet("{id:int}")]
-        public virtual async Task<IActionResult> GetById(int id, CancellationToken ct = default)
+        [HttpGet("{id:Int64}")]
+        public virtual async Task<IActionResult> GetById(Int64 id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id, ct);
             if (entity == null) return NotFound();
             var model = await MapEntityToModelAsync(entity);
             return Ok(model);
+
         }
 
         // GET api/[controller]/byname/{name}
         [HttpGet("byname/{name}")]
         public virtual async Task<IActionResult> GetByName(string name, CancellationToken ct = default)
         {
-            var entity = await _repo.Query()
-                                    .Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
-                                    .FirstOrDefaultAsync(ct);
+            var entities = await _repo.GetAllAsync(ct);
+            if (entities == null) return NotFound();
+
+            var entity = entities.Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault<TEntity>();
             if (entity == null) return NotFound();
+
             var model = await MapEntityToModelAsync(entity);
             return Ok(model);
+
         }
 
-        // GET api/[controller]
+        // GET api/[controller]/getall
+        [HttpGet("getall")]
         [HttpGet]
         public virtual async Task<IActionResult> GetAll(CancellationToken ct = default)
         {
             var entities = await _repo.GetAllAsync(ct);
             var models = await MapEntitiesToModelsAsync(entities, ct);
             return Ok(models);
+
         }
 
         // GET api/[controller]/active
@@ -65,11 +72,12 @@ namespace SupportPortalAPI.Controllers
             var entities = await _repo.GetAllActiveAsync(ct);
             var models = await MapEntitiesToModelsAsync(entities, ct);
             return Ok(models);
+
         }
 
         // PUT api/[controller]/{id}
-        [HttpPut("{id:int}")]
-        public virtual async Task<IActionResult> Update(int id, [FromBody] TEntity updated, CancellationToken ct = default)
+        [HttpPut("{id:Int64}")]
+        public virtual async Task<IActionResult> Update(Int64 id, [FromBody] TEntity updated, CancellationToken ct = default)
         {
             if (updated == null || id != updated.Id) return BadRequest();
             var existing = await _repo.GetByIdAsync(id, ct);
@@ -78,6 +86,7 @@ namespace SupportPortalAPI.Controllers
             _repo.Update(updated);
             await _repo.SaveChangesAsync(ct);
             return NoContent();
+
         }
 
         // POST api/[controller]
@@ -91,6 +100,7 @@ namespace SupportPortalAPI.Controllers
 
             var model = await MapEntityToModelAsync(create);
             return CreatedAtAction(nameof(GetById), new { id = create.Id }, model);
+
         }
 
         protected virtual Task<TModel> MapEntityToModelAsync(TEntity entity)
@@ -99,6 +109,7 @@ namespace SupportPortalAPI.Controllers
             var model = new TModel();
             DBMapper.MapPortalEntity2Object(entity, model);
             return Task.FromResult(model);
+
         }
 
         protected virtual async Task<IEnumerable<TModel>> MapEntitiesToModelsAsync(IEnumerable<TEntity> entities, CancellationToken ct = default)
@@ -106,8 +117,11 @@ namespace SupportPortalAPI.Controllers
             var tasks = entities.Select(e => MapEntityToModelAsync(e));
             var results = await Task.WhenAll(tasks);
             return results;
+
         }
 
         protected IActionResult OkOrNotFound(object? o) => o == null ? NotFound() : Ok(o);
+
     }
+
 }

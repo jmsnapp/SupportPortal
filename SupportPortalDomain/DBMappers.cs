@@ -79,7 +79,6 @@ namespace SupportPortalDomain
             Project project = new Project();
             MapPortalEntity2Object(entity, project);
 
-
             PhaseEntity currentPhaseEntity = phaseRepository.GetByIdAsync(entity.CurrentPhase).Result;
             MapPortalEntity2Object(currentPhaseEntity, project.CurrentPhase);
 
