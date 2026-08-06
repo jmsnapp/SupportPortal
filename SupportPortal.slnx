@@ -4,6 +4,7 @@
     <File Path="Documentation/Design_Notes.md" />
     <File Path="Documentation/Initial_Specification.md" />
     <File Path="Documentation/SupportPortalDB_ERD.jpg" />
+    <File Path="Documentation/SupportPortalUI Functional Spec.md" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="README.md" />
