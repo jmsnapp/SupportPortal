@@ -1,7 +1,229 @@
 ﻿@page "/"
 
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IEscalationsApiClient EscalationsClient
+@inject SupportPortalUI.ApiClients.Interfaces.ITicketsApiClient TicketsClient
+@inject SupportPortalUI.ApiClients.Interfaces.IProjectsApiClient ProjectsClient
+@inject SupportPortalUI.ApiClients.Interfaces.IIntegrationsApiClient IntegrationsClient
+
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Support Portal — Dashboard</h1>
 
-Welcome to your new app.
+<h2>Escalations</h2>
+@if (escalationsLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(escalationsError))
+{
+    <ErrorMessage Message="@escalationsError" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Id</th><th>Name</th><th>Problem</th><th>Created</th></tr></thead>
+        <tbody>
+            @foreach (var e in escalations)
+            {
+                <tr class="@(string.IsNullOrWhiteSpace(e.CustomerImpact) ? string.Empty : "table-warning")">
+                    <td>@e.Id</td>
+                    <td><a href="/escalations/@e.Id">@e.Name</a></td>
+                    <td>@(e.ProblemSummary?.Length > 80 ? e.ProblemSummary[..80] + "..." : e.ProblemSummary)</td>
+                    <td>@e.CreatedDate.ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Open Tickets</h2>
+@if (ticketsLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(ticketsError))
+{
+    <ErrorMessage Message="@ticketsError" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Id</th><th>Name</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
+        <tbody>
+            @foreach (var t in tickets)
+            {
+                <tr>
+                    <td>@t.Id</td>
+                    <td><a href="/tickets/@t.Id">@t.Name</a></td>
+                    <td>@t.Severity</td>
+                    <td>@t.Status</td>
+                    <td>@t.AssignedTo</td>
+                    <td>@t.CreatedDate.ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Open Projects</h2>
+@if (projectsLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(projectsError))
+{
+    <ErrorMessage Message="@projectsError" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Id</th><th>Name</th><th>Phase</th><th>Target Go Live</th></tr></thead>
+        <tbody>
+            @foreach (var p in projects)
+            {
+                <tr>
+                    <td>@p.Id</td>
+                    <td><a href="/projects/@p.Id">@p.Name</a></td>
+                    <td>@p.CurrentPhase</td>
+                    <td>@(p.TargetGoLiveDate?.ToString("d") ?? string.Empty)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h2>Active Integrations</h2>
+@if (integrationsLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(integrationsError))
+{
+    <ErrorMessage Message="@integrationsError" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Last Sync</th><th>Retries</th></tr></thead>
+        <tbody>
+            @foreach (var i in integrations)
+            {
+                <tr class="@(i.IsHealthy ? string.Empty : "table-danger")">
+                    <td><a href="/integrations/@i.Id">@i.Name</a></td>
+                    <td>@i.IntegrationType</td>
+                    <td>@i.CurrentStatus</td>
+                    <td>@(i.LastSuccessfulSync?.ToString("g") ?? "-")</td>
+                    <td>@i.RetryCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<EscalationDto> escalations = Array.Empty<EscalationDto>();
+    private IEnumerable<TicketDto> tickets = Array.Empty<TicketDto>();
+    private IEnumerable<ProjectDto> projects = Array.Empty<ProjectDto>();
+    private IEnumerable<IntegrationDto> integrations = Array.Empty<IntegrationDto>();
+
+    private bool escalationsLoading = true;
+    private bool ticketsLoading = true;
+    private bool projectsLoading = true;
+    private bool integrationsLoading = true;
+
+    private string? escalationsError;
+    private string? ticketsError;
+    private string? projectsError;
+    private string? integrationsError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAllAsync();
+    }
+
+    private async Task LoadAllAsync()
+    {
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+        // Fire tasks in parallel and capture failures individually
+        var escTask = LoadEscalationsAsync(cts.Token);
+        var ticketTask = LoadTicketsAsync(cts.Token);
+        var projTask = LoadProjectsAsync(cts.Token);
+        var intTask = LoadIntegrationsAsync(cts.Token);
+
+        await Task.WhenAll(escTask, ticketTask, projTask, intTask);
+    }
+
+    private async Task LoadEscalationsAsync(CancellationToken ct)
+    {
+        try
+        {
+            escalationsLoading = true;
+            escalations = await EscalationsClient.GetActiveAsync(5, ct);
+        }
+        catch (Exception ex)
+        {
+            escalationsError = ex.Message;
+        }
+        finally
+        {
+            escalationsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadTicketsAsync(CancellationToken ct)
+    {
+        try
+        {
+            ticketsLoading = true;
+            tickets = await TicketsClient.GetActiveAsync(10, ct);
+        }
+        catch (Exception ex)
+        {
+            ticketsError = ex.Message;
+        }
+        finally
+        {
+            ticketsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadProjectsAsync(CancellationToken ct)
+    {
+        try
+        {
+            projectsLoading = true;
+            projects = await ProjectsClient.GetActiveAsync(8, ct);
+        }
+        catch (Exception ex)
+        {
+            projectsError = ex.Message;
+        }
+        finally
+        {
+            projectsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadIntegrationsAsync(CancellationToken ct)
+    {
+        try
+        {
+            integrationsLoading = true;
+            integrations = await IntegrationsClient.GetActiveAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            integrationsError = ex.Message;
+        }
+        finally
+        {
+            integrationsLoading = false;
+            StateHasChanged();
+        }
+    }
+}

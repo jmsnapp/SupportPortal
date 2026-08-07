@@ -1,0 +1,53 @@
+@page "/integrations"
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IIntegrationsApiClient IntegrationsClient
+
+<PageTitle>Integrations</PageTitle>
+
+<h3>Active Integrations</h3>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <ErrorMessage Message="@error" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Last Sync</th><th>Retries</th></tr></thead>
+        <tbody>
+            @foreach (var i in integrations)
+            {
+                <tr class="@(i.IsHealthy ? string.Empty : "table-danger")">
+                    <td><NavLink class="nav-link p-0" href="@($"/integrations/{i.Id}")">@i.Name</NavLink></td>
+                    <td>@i.IntegrationType</td>
+                    <td>@i.CurrentStatus</td>
+                    <td>@(i.LastSuccessfulSync?.ToString("g") ?? "-")</td>
+                    <td>@i.RetryCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<IntegrationDto> integrations = Array.Empty<IntegrationDto>();
+    private bool isLoading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            integrations = await IntegrationsClient.GetActiveAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally { isLoading = false; }
+    }
+}

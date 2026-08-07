@@ -13,7 +13,7 @@ public class TicketNoteRepository : GenericRepository<TicketNoteEntity>, ITicket
 
     public async Task<IEnumerable<TicketNoteEntity >> GetByTicketIdAsync(Int64 ticketId, CancellationToken cancellationToken = default) =>
         await _dbSet
-            .Where(tn => tn.TicketId == ticketId)
+            .FromSql($"SELECT * FROM TicketNote WHERE Deleted = 0 AND TicketId = {ticketId}")
             .ToListAsync(cancellationToken);
 
 }

@@ -1,0 +1,112 @@
+@page "/admin/severities"
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.ISeveritiesApiClient Clients
+
+<PageTitle>Admin - Severities</PageTitle>
+
+<h3>Severities</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="() => showCreate = true">Create Severity</button>
+</div>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <ErrorMessage Message="@error" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Id</th><th>Name</th><th>Deleted</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var c in items)
+            {
+                <tr>
+                    <td>@c.Id</td>
+                    <td>@c.Name</td>
+                    <td>@c.Deleted</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary me-1" @onclick="() => Edit(c)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(c)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<AdminEntityModal IsOpen="showCreate" IsOpenChanged="@(b => showCreate = b)" Title="Create Severity" Model="newModel" OnSaved="OnCreateSaved" />
+<AdminEntityModal IsOpen="showEdit" IsOpenChanged="@(b => showEdit = b)" Title="Edit Severity" Model="editModel" OnSaved="OnEditSaved" />
+<ConfirmModal IsOpen="showConfirm" IsOpenChanged="@(b => showConfirm = b)" Title="Delete Severity" Message="Are you sure you want to mark this severity as deleted?" OnConfirmed="OnDeleteConfirmed" />
+
+@code {
+    private IEnumerable<ReferenceDto> items = Array.Empty<ReferenceDto>();
+    private bool isLoading = true;
+    private string? error;
+
+    private bool showCreate;
+    private bool showEdit;
+    private ReferenceDto newModel = new();
+    private ReferenceDto editModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        error = null;
+        try
+        {
+            items = await Clients.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally { isLoading = false; }
+    }
+
+    private void Edit(ReferenceDto dto)
+    {
+        editModel = new ReferenceDto { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
+        showEdit = true;
+    }
+
+    private ReferenceDto? deletingModel;
+    private bool showConfirm;
+
+    private void ConfirmDelete(ReferenceDto dto)
+    {
+        deletingModel = dto;
+        showConfirm = true;
+    }
+
+    private async Task OnDeleteConfirmed()
+    {
+        if (deletingModel is null) return;
+        deletingModel.Deleted = true;
+        var ok = await Clients.UpdateAsync(deletingModel.Id, deletingModel);
+        if (ok) await LoadAsync();
+        deletingModel = null;
+    }
+
+    private async Task OnCreateSaved(ReferenceDto dto)
+    {
+        var created = await Clients.CreateAsync(dto);
+        if (created is not null) await LoadAsync();
+    }
+
+    private async Task OnEditSaved(ReferenceDto dto)
+    {
+        if (dto.Id == 0) return;
+        var ok = await Clients.UpdateAsync(dto.Id, dto);
+        if (ok) await LoadAsync();
+    }
+}

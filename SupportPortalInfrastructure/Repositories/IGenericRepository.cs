@@ -10,7 +10,7 @@ public interface IGenericRepository<PortalEntity>
 
     Task<IEnumerable<PortalEntity>> GetAllActiveAsync(CancellationToken cancellationToken = default);
 
-    Task<PortalEntity?> GetByIdAsync(object id, CancellationToken cancellationToken = default);
+    Task<PortalEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
 
     Task AddAsync(PortalEntity entity, CancellationToken cancellationToken = default);
 

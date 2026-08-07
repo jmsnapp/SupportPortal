@@ -1,0 +1,65 @@
+@page "/integrations/{Id:int}"
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IIntegrationsApiClient IntegrationsClient
+
+<PageTitle>Integration Details</PageTitle>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <ErrorMessage Message="@error" />
+}
+else if (integration is not null)
+{
+    <h3>@integration.Name</h3>
+    <dl class="row">
+        <dt class="col-sm-3">Type</dt>
+        <dd class="col-sm-9">@integration.IntegrationType</dd>
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">@integration.CurrentStatus</dd>
+        <dt class="col-sm-3">Last Successful Sync</dt>
+        <dd class="col-sm-9">@(integration.LastSuccessfulSync?.ToString("g") ?? "-")</dd>
+        <dt class="col-sm-3">Retry Count</dt>
+        <dd class="col-sm-9">@integration.RetryCount</dd>
+    </dl>
+
+    <div class="mb-3">
+        <button class="btn btn-primary">Trigger Sync</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private IntegrationDto? integration;
+    private bool isLoading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        error = null;
+        try
+        {
+            integration = await IntegrationsClient.GetByIdAsync(Id);
+            if (integration is null) error = "Integration not found.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,68 @@
+@page "/projects/{Id:int}"
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IProjectsApiClient ProjectsClient
+
+<PageTitle>Project Details</PageTitle>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <ErrorMessage Message="@error" />
+}
+else if (project is not null)
+{
+    <h3>@project.Name</h3>
+    <dl class="row">
+        <dt class="col-sm-3">Current Phase</dt>
+        <dd class="col-sm-9">@project.CurrentPhase</dd>
+        <dt class="col-sm-3">Target Go Live</dt>
+        <dd class="col-sm-9">@(project.TargetGoLiveDate?.ToString("d") ?? "")</dd>
+    </dl>
+
+    <div class="mb-3">
+        <button class="btn btn-secondary me-2" @onclick="() => showNotes = true">Show Project Notes</button>
+        <button class="btn btn-secondary" @onclick="() => showManagePhases = true">Manage Phases</button>
+    </div>
+
+    <NotesModal IsOpen="showNotes" IsOpenChanged="@(b => showNotes = b)" ProjectId="@project.Id" />
+    <ManagePhasesModal IsOpen="showManagePhases" IsOpenChanged="@(b => showManagePhases = b)" ProjectId="@project.Id" />
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ProjectDto? project;
+    private bool isLoading = true;
+    private string? error;
+
+    private bool showNotes;
+    private bool showManagePhases;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        error = null;
+        try
+        {
+            project = await ProjectsClient.GetByIdAsync(Id);
+            if (project is null) error = "Project not found.";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

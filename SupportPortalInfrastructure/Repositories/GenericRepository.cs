@@ -27,7 +27,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     public async Task<IEnumerable<TEntity>> GetAllActiveAsync(CancellationToken cancellationToken = default) =>
         await _dbSet.Where(x => x.Deleted == false).ToListAsync(cancellationToken);
 
-    public async Task<TEntity?> GetByIdAsync(object id, CancellationToken cancellationToken = default) =>
+    public async Task<TEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default) =>
         await _dbSet.FindAsync(new object[] { id }, cancellationToken);
 
     public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default) =>

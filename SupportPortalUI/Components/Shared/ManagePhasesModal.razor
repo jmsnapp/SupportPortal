@@ -1,0 +1,98 @@
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IPhasesApiClient PhasesClient
+@inject SupportPortalUI.ApiClients.Interfaces.ILinkProjectPhasesApiClient LinkPhasesClient
+
+<div class="modal" tabindex="-1" style="display:@(IsOpen ? "block" : "none")" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Manage Project Phases</h5>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (isLoading)
+                {
+                    <Loading />
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Available Phases</label>
+                        <select class="form-select" @bind="selectedPhaseId">
+                            <option value="">-- select --</option>
+                            @foreach (var p in allPhases)
+                            {
+                                <option value="@p.Id">@p.Name</option>
+                            }
+                        </select>
+                        <button class="btn btn-primary mt-2" @onclick="AddPhaseAsync">Add Phase</button>
+                    </div>
+
+                    <h6>Linked Phases</h6>
+                    <ul class="list-group">
+                        @foreach (var lp in linkedPhases)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@(lp.PhaseName ?? lp.PhaseId.ToString())</span>
+                                <button class="btn btn-sm btn-danger" @onclick="() => RemovePhaseAsync(lp.Id)">Remove</button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public class LinkedPhaseView { public Int64 Id { get; set; } public Int64 PhaseId { get; set; } public string? PhaseName { get; set; } }
+
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    [Parameter]
+    public Int64 ProjectId { get; set; }
+
+    private IEnumerable<ReferenceDto> allPhases = Array.Empty<ReferenceDto>();
+    private List<LinkedPhaseView> linkedPhases = new();
+    private Int64? selectedPhaseId;
+    private bool isLoading;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen) await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        allPhases = await PhasesClient.GetAllAsync();
+        var linked = await LinkPhasesClient.GetByProjectIdAsync(ProjectId);
+        linkedPhases = linked.Select(lp => new LinkedPhaseView { Id = lp.Id, PhaseId = lp.PhaseId, PhaseName = allPhases.FirstOrDefault(p => p.Id == lp.PhaseId)?.Name }).ToList();
+        isLoading = false;
+    }
+
+    private async Task AddPhaseAsync()
+    {
+        if (selectedPhaseId is null) return;
+        var created = await LinkPhasesClient.CreateAsync(new LinkProjectPhaseDto { ProjectId = ProjectId, PhaseId = selectedPhaseId.Value });
+        if (created is not null)
+        {
+            linkedPhases.Add(new LinkedPhaseView { Id = created.Id, PhaseId = created.PhaseId, PhaseName = allPhases.FirstOrDefault(p => p.Id == created.PhaseId)?.Name });
+        }
+    }
+
+    private async Task RemovePhaseAsync(Int64 id)
+    {
+        var ok = await LinkPhasesClient.DeleteAsync(id);
+        if (ok) linkedPhases.RemoveAll(lp => lp.Id == id);
+    }
+
+    private async Task Close() => await IsOpenChanged.InvokeAsync(false);
+}

@@ -1,0 +1,130 @@
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.ITicketNotesApiClient TicketNotesClient
+@inject SupportPortalUI.ApiClients.Interfaces.IProjectNotesApiClient ProjectNotesClient
+
+<div class="modal" tabindex="-1" style="display:@(IsOpen ? "block" : "none")" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Notes</h5>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (isLoading)
+                {
+                    <Loading />
+                }
+                else if (!string.IsNullOrEmpty(error))
+                {
+                    <ErrorMessage Message="@error" />
+                }
+                else
+                {
+                    <ul class="list-group mb-3">
+                        @foreach (var n in notes)
+                        {
+                            <li class="list-group-item">
+                                <div><strong>@n.Author</strong> <small class="text-muted">@n.CreatedDate.ToString("g")</small></div>
+                                <div>@n.Text</div>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="mb-3">
+                        <label class="form-label">Add note</label>
+                        <textarea class="form-control" rows="3" @bind="newText"></textarea>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Close</button>
+                <button class="btn btn-primary" @onclick="AddNoteAsync" disabled="@isSaving">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    [Parameter]
+    public Int64? TicketId { get; set; }
+
+    [Parameter]
+    public Int64? ProjectId { get; set; }
+
+    private IEnumerable<NoteView> notes = Array.Empty<NoteView>();
+    private bool isLoading;
+    private bool isSaving;
+    private string? error;
+    private string? newText;
+
+    private record NoteView(string? Author, string? Text, DateTime CreatedDate);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadNotesAsync();
+    }
+
+    private async Task LoadNotesAsync()
+    {
+        isLoading = true;
+        error = null;
+        try
+        {
+            if (TicketId is not null)
+            {
+                var t = await TicketNotesClient.GetByTicketIdAsync(TicketId.Value);
+                notes = t.Select(n => new NoteView(n.Author, n.Text, n.CreatedDate));
+            }
+            else if (ProjectId is not null)
+            {
+                var p = await ProjectNotesClient.GetByProjectIdAsync(ProjectId.Value);
+                notes = p.Select(n => new NoteView(n.Author, n.Text, n.CreatedDate));
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddNoteAsync()
+    {
+        if (string.IsNullOrWhiteSpace(newText)) return;
+        isSaving = true;
+        try
+        {
+            if (TicketId is not null)
+            {
+                var dto = new TicketNoteDto { TicketId = TicketId.Value, Author = "UI", Text = newText };
+                await TicketNotesClient.CreateAsync(dto);
+            }
+            else if (ProjectId is not null)
+            {
+                var dto = new ProjectNoteDto { ProjectId = ProjectId.Value, Author = "UI", Text = newText };
+                await ProjectNotesClient.CreateAsync(dto);
+            }
+
+            newText = string.Empty;
+            await LoadNotesAsync();
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}

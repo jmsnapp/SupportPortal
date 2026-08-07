@@ -1,0 +1,57 @@
+@page "/tickets"
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.ITicketsApiClient TicketsClient
+
+<PageTitle>Tickets</PageTitle>
+
+<h3>Open Tickets</h3>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <ErrorMessage Message="@error" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Id</th><th>Name</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
+        <tbody>
+            @foreach (var t in tickets)
+            {
+                <tr>
+                    <td>@t.Id</td>
+                    <td><NavLink class="nav-link p-0" href="@($"/tickets/{t.Id}")">@t.Name</NavLink></td>
+                    <td>@t.Severity</td>
+                    <td>@t.Status</td>
+                    <td>@t.AssignedTo</td>
+                    <td>@t.CreatedDate.ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<TicketDto> tickets = Array.Empty<TicketDto>();
+    private bool isLoading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            tickets = await TicketsClient.GetActiveAsync(100);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

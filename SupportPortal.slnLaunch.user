@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "SupportPortalAPI\\SupportPortalAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SupportPortalUI\\SupportPortalUI.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

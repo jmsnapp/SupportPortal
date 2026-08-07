@@ -1,0 +1,52 @@
+@page "/escalations"
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IEscalationsApiClient EscalationsClient
+
+<PageTitle>Escalations</PageTitle>
+
+<h3>Active Escalations</h3>
+
+@if (isLoading)
+{
+    <Loading />
+}
+else if (!string.IsNullOrEmpty(error))
+{
+    <ErrorMessage Message="@error" />
+}
+else
+{
+    <table class="table table-sm">
+        <thead><tr><th>Id</th><th>Name</th><th>Problem</th><th>Created</th></tr></thead>
+        <tbody>
+            @foreach (var e in escalations)
+            {
+                <tr class="@(string.IsNullOrWhiteSpace(e.CustomerImpact) ? string.Empty : "table-warning")">
+                    <td>@e.Id</td>
+                    <td><NavLink class="nav-link p-0" href="@($"/escalations/{e.Id}")">@e.Name</NavLink></td>
+                    <td>@(e.ProblemSummary?.Length > 120 ? e.ProblemSummary[..120] + "..." : e.ProblemSummary)</td>
+                    <td>@e.CreatedDate.ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<EscalationDto> escalations = Array.Empty<EscalationDto>();
+    private bool isLoading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            escalations = await EscalationsClient.GetActiveAsync(100);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally { isLoading = false; }
+    }
+}

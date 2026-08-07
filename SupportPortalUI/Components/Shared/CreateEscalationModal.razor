@@ -1,0 +1,79 @@
+@using SupportPortalUI.Models
+@inject SupportPortalUI.ApiClients.Interfaces.IEscalationsApiClient EscalationsClient
+@inherits ComponentBase
+
+<div class="modal" tabindex="-1" style="display:@(IsOpen ? "block" : "none")" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Escalation</h5>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input class="form-control" @bind="Model.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Problem Summary</label>
+                    <textarea class="form-control" rows="4" @bind="Model.ProblemSummary"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Cancel</button>
+                <button class="btn btn-primary" @onclick="SubmitAsync" disabled="@isSaving">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    [Parameter]
+    public Int64? SourceTicketId { get; set; }
+
+    [Parameter]
+    public EventCallback<Int64> OnCreated { get; set; }
+
+    private EscalationDto Model { get; set; } = new();
+    private bool isSaving;
+
+    protected override void OnParametersSet()
+    {
+        if (SourceTicketId is not null)
+        {
+            // Prefill name
+            Model = new EscalationDto { Name = $"Escalation for ticket {SourceTicketId}", ProblemSummary = string.Empty };
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        isSaving = true;
+        try
+        {
+            // Post to API
+            var created = await EscalationsClient.CreateAsync(Model!);
+            if (created is not null)
+            {
+                await OnCreated.InvokeAsync(created.Id);
+                await Close();
+            }
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}
