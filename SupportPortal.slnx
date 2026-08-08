@@ -6,6 +6,7 @@
     <File Path="Documentation/SupportPortalDB_ERD.jpg" />
   </Folder>
   <Folder Name="/Solution Items/">
+    <File Path=".github/copilot-instructions.md" />
     <File Path="README.md" />
   </Folder>
   <Project Path="SupportPortalAPI/SupportPortalAPI.csproj" />
