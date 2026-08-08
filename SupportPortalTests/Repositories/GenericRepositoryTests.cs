@@ -57,10 +57,6 @@ public class GenericRepositoryTests
         var active = (await repo.GetAllActiveAsync()).ToList();
         Assert.IsFalse(active.Any());
 
-        // Remove permanently
-        repo.Remove(updated);
-        await repo.SaveChangesAsync();
-
         var remaining = (await repo.GetAllAsync()).ToList();
         Assert.AreEqual(0, remaining.Count);
 

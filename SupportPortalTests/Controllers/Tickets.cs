@@ -66,7 +66,7 @@ public class TicketsControllerTests
         SeverityEntity severityEntity = new SeverityEntity { Id = 1L, Name = "Severity1" };
         SupportStatusEntity supportStatusEntity = new SupportStatusEntity { Id = 1L, Name = "SupportStatus1" };
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
-        TicketEntity entity = new TicketEntity { Id = 1L, Name = "Open", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L };
+        TicketEntity entity = new TicketEntity { Id = 1L, Name = "Open", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
         escalationRepoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(escalationEntity);
@@ -192,7 +192,7 @@ public class TicketsControllerTests
         SeverityEntity severityEntity = new SeverityEntity { Id = 1L, Name = "Severity1" };
         SupportStatusEntity supportStatusEntity = new SupportStatusEntity { Id = 1L, Name = "SupportStatus1" };
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
-        TicketEntity entity = new TicketEntity { Id = 2L, Name = "Closed", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L };
+        TicketEntity entity = new TicketEntity { Id = 2L, Name = "Closed", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
         var list = new List<TicketEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
@@ -261,8 +261,8 @@ public class TicketsControllerTests
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
         List<TicketEntity> entities = new List<TicketEntity>
         {
-            new TicketEntity { Id = 1L, Name = "A", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L },
-            new TicketEntity { Id = 2L, Name = "B", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L },
+            new TicketEntity { Id = 1L, Name = "A", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
+            new TicketEntity { Id = 2L, Name = "B", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
         };
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
@@ -330,8 +330,8 @@ public class TicketsControllerTests
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
         List<TicketEntity> entities = new List<TicketEntity>
         {
-            new TicketEntity { Id = 3L, Name = "Active1", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L },
-            new TicketEntity { Id = 4L, Name = "Active2", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L },
+            new TicketEntity { Id = 3L, Name = "Active1", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
+            new TicketEntity { Id = 4L, Name = "Active2", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
         };
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
@@ -502,7 +502,7 @@ public class TicketsControllerTests
                                                              ticketNoteRepoMock.Object,
                                                              _mapper);
 
-        TicketEntity updated = new TicketEntity { Id = 5L, Name = "Z", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L };
+        TicketEntity updated = new TicketEntity { Id = 5L, Name = "Z", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -521,7 +521,7 @@ public class TicketsControllerTests
         SeverityEntity severityEntity = new SeverityEntity { Id = 1L, Name = "Severity1" };
         SupportStatusEntity supportStatusEntity = new SupportStatusEntity { Id = 1L, Name = "SupportStatus1" };
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
-        TicketEntity existing = new TicketEntity { Id = 6L, Name = "Before", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L };
+        TicketEntity existing = new TicketEntity { Id = 6L, Name = "Before", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
         escalationRepoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(escalationEntity);
@@ -567,7 +567,7 @@ public class TicketsControllerTests
                                                              ticketNoteRepoMock.Object,
                                                              _mapper);
 
-        TicketEntity updated = new TicketEntity { Id = 6L, Name = "After", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L };
+        TicketEntity updated = new TicketEntity { Id = 6L, Name = "After", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
         var result = await controller.Update(6L, updated);
 
         Assert.IsInstanceOfType(result, typeof(NoContentResult));
@@ -647,7 +647,7 @@ public class TicketsControllerTests
         SeverityEntity severityEntity = new SeverityEntity { Id = 1L, Name = "Severity1" };
         SupportStatusEntity supportStatusEntity = new SupportStatusEntity { Id = 1L, Name = "SupportStatus1" };
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
-        TicketEntity toCreate = new TicketEntity { Id = 7L, Name = "New", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, SupportStatusId = 1L };
+        TicketEntity toCreate = new TicketEntity { Id = 7L, Name = "New", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
         escalationRepoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(escalationEntity);

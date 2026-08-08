@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[TicketNote]
+﻿CREATE TABLE [dbo].[TicketNotes]
 (
 	[Id] BIGINT NOT NULL IDENTITY(0,1) PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
@@ -13,8 +13,8 @@
 
 GO
 
-CREATE INDEX [IX_TicketNote_Ticket] ON [dbo].[TicketNote] ([TicketId])
+CREATE INDEX [IX_TicketNote_Ticket] ON [dbo].[TicketNotes] ([TicketId])
 
 GO
 
-CREATE INDEX [IX_TicketNote_Deleted] ON [dbo].[TicketNote] ([Deleted])
+CREATE INDEX [IX_TicketNote_Deleted] ON [dbo].[TicketNotes] ([Deleted])
