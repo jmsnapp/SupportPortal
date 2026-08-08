@@ -7,6 +7,7 @@
     <File Path="Documentation/SupportPortalUI Functional Spec.md" />
   </Folder>
   <Folder Name="/Solution Items/">
+    <File Path=".github/copilot-instructions.md" />
     <File Path="README.md" />
   </Folder>
   <Project Path="SupportPortalAPI/SupportPortalAPI.csproj" />
