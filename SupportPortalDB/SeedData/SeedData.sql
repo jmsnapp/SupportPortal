@@ -108,37 +108,37 @@ INSERT INTO [dbo].[Projects]([Name], [Description], [CustomerId], [CurrentPhase]
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEVELOPMENT'), 
 	DATEADD(YEAR, 1, GETDATE()));
 
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order], [Deleted])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order], [Deleted])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'DEFAULT'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEFAULT'), 
 	0, 0, 1);
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'BUS_REQ_DISCOVERY'), 
 	20, 1);
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'TECH_REQ_DISCOVERY'), 
 	20, 2);
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEVELOPMENT'), 
 	20, 3);
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'TESTING'), 
 	20, 4);
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEPLOYMENT'), 
 	20, 5);
-INSERT INTO [dbo].[LinkProjectPhase]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
+INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
 	VALUES('DEFAULT', 'Default', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'MAINTENANCE'), 
@@ -186,7 +186,7 @@ INSERT INTO [dbo].[Tickets]([Name], [Description], [CustomerId], [IntegrationId]
 	'Lex Luthor', 'Matt Snapp', DATEADD(MONTH, -6, GETDATE()), DATEADD(MONTH, -5, GETDATE()), 
 	'JLA Feed has a log entry referencing a JLA operation at the time that the customer''s API went down.  Reasonably suspect that the other server is no longer operational.', 1);
 
-INSERT INTO [dbo].[TicketNote]([Name], [Description], [TicketId], [Deleted])
+INSERT INTO [dbo].[TicketNotes]([Name], [Description], [TicketId], [Deleted])
 	VALUES(0, 'Default Note', 0, 1);
-INSERT INTO [dbo].[TicketNote]([Name], [Description], [TicketId], [Note], [CreateTime])
+INSERT INTO [dbo].[TicketNotes]([Name], [Description], [TicketId], [Note], [CreateTime])
 	VALUES('1', 'Customer Contact Warning', 1, 'This guy is a jerk.  Redirect to technical contact ASAP.', DATEADD(MONTH, -5, GETDATE()));
