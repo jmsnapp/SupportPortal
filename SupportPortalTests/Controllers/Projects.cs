@@ -117,7 +117,6 @@ public class ProjectsControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         ProjectEntity entity = new ProjectEntity { Id = 2L, Name = "Closed", CurrentPhase = 1L };
-        var list = new List<ProjectEntity> { entity }.AsQueryable();
         PhaseEntity phaseEntity = new PhaseEntity { Id = 1L, Name = "DEFAULT" };
         LinkProjectPhaseEntity linkEntity = new LinkProjectPhaseEntity { Id = 1L, Name = "Open", ProjectId = 1L, PhaseId = 1L };
         ProjectNoteEntity noteEntity = new ProjectNoteEntity { Id = 1L, Name = "Note", ProjectId = 1L };
@@ -132,7 +131,7 @@ public class ProjectsControllerTests
         repoNote.Setup(n => n.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(noteEntity);
 
         var repoMock = new Mock<IGenericRepository<ProjectEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         ProjectsController controller = new ProjectsController(repoMock.Object, repoLink.Object, repoPhase.Object, repoNote.Object, _mapper);
 

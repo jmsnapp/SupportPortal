@@ -101,15 +101,13 @@ public class LinkProjectPhasesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
         LinkProjectPhaseEntity entity = new LinkProjectPhaseEntity { Id = 2L, Name = "Closed", PhaseId = 1L };
-        var list = new List<LinkProjectPhaseEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
         repoPhase.Setup(p => p.GetByIdAsync(1L)).ReturnsAsync(phaseEntity);
 
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
 

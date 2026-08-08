@@ -87,10 +87,9 @@ public class EscalationsControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         var entity = new EscalationEntity { Id = 2L, Name = "Closed" };
-        var list = new List<EscalationEntity> { entity }.AsQueryable();
 
         var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         var controller = new EscalationsController(repoMock.Object, _mapper);
 

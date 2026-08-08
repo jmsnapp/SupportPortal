@@ -18,9 +18,9 @@ namespace SupportPortalDomain
             IndustryEntity industryEntity = industryRepository.GetByIdAsync(entity.IndustryId).Result;
             MapPortalEntity2Object(industryEntity, customer.Industry);
 
-            customer.PrimaryContact = entity.PrimaryContact;
+            customer.PrimaryContact = entity.PrimaryContactName;
             customer.PrimaryContactEmail = entity.PrimaryContactEmail;
-            customer.TechnicalContact = entity.TechnicalContact;
+            customer.TechnicalContact = entity.TechnicalContactName;
             customer.TechnicalContactEmail = entity.TechnicalContactEmail;
             customer.CreatedDate = entity.CreatedDate;
 
@@ -97,8 +97,8 @@ namespace SupportPortalDomain
 
             }
 
-            project.TargetGoLive = entity.TargetGoLive;
-            project.ActualGoLive = entity.ActualGoLive;
+            project.TargetGoLive = entity.TargetGoLiveDate;
+            project.ActualGoLive = entity.ActualGoLiveDate;
 
             return project;
 
@@ -131,7 +131,7 @@ namespace SupportPortalDomain
             SeverityEntity severityEntity = severityRepository.GetByIdAsync(entity.SeverityId).Result;
             MapPortalEntity2Object(severityEntity, ticket.Severity);
 
-            SupportStatusEntity statusEntity = supportStatusRepository.GetByIdAsync(entity.SupportStatusId).Result;
+            SupportStatusEntity statusEntity = supportStatusRepository.GetByIdAsync(entity.StatusId).Result;
             MapPortalEntity2Object(statusEntity, ticket.Status);
 
             if (entity.EscalationId.HasValue)
@@ -168,9 +168,9 @@ namespace SupportPortalDomain
             MapPortalObject2Entity(customer, entity);
 
             entity.IndustryId = customer.Industry.Id;
-            entity.PrimaryContact = customer.PrimaryContact;
+            entity.PrimaryContactName = customer.PrimaryContact;
             entity.PrimaryContactEmail = customer.PrimaryContactEmail;
-            entity.TechnicalContact = customer.TechnicalContact;
+            entity.TechnicalContactName = customer.TechnicalContact;
             entity.TechnicalContactEmail = customer.TechnicalContactEmail;
             entity.CreatedDate = customer.CreatedDate;
 
@@ -185,7 +185,7 @@ namespace SupportPortalDomain
 
             objReturn.ProblemSummary = entity.ProblemSummary;
             objReturn.CustomerImpact = entity.CustomerImpact;
-            objReturn.RecommendedAction = entity.RecommendedAction;
+            objReturn.RecommendedActions = entity.RecommendedActions;
             objReturn.RootCause = entity.RootCause;
 
             return objReturn;
@@ -199,7 +199,7 @@ namespace SupportPortalDomain
 
             entityReturn.ProblemSummary = obj.ProblemSummary;
             entityReturn.CustomerImpact = obj.CustomerImpact;
-            entityReturn.RecommendedAction = obj.RecommendedAction;
+            entityReturn.RecommendedActions = obj.RecommendedActions;
             entityReturn.RootCause = obj.RootCause;
 
             return entityReturn;
@@ -246,8 +246,8 @@ namespace SupportPortalDomain
             MapPortalObject2Entity(obj, entity);
 
             entity.CurrentPhase = obj.CurrentPhase.Id;
-            entity.TargetGoLive = obj.TargetGoLive;
-            entity.ActualGoLive = obj.ActualGoLive;
+            entity.TargetGoLiveDate = obj.TargetGoLive;
+            entity.ActualGoLiveDate = obj.ActualGoLive;
 
             return entity;
 
@@ -286,7 +286,7 @@ namespace SupportPortalDomain
             entity.CustomerId = obj.Customer.Id;
             entity.IntegrationId = obj.Integration.Id;
             entity.SeverityId = obj.Severity.Id;          
-            entity.SupportStatusId = obj.Status.Id;
+            entity.StatusId = obj.Status.Id;
             entity.Reproduce = obj.Reproduce;
             entity.ReportedBy = obj.ReportedBy;
             entity.AssignedTo = obj.AssignedTo;

@@ -92,10 +92,9 @@ public class SupportStatusesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         SupportStatusEntity entity = new SupportStatusEntity { Id = 2L, Name = "Closed" };
-        var list = new List<SupportStatusEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
 

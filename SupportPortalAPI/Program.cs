@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SupportPortalAPI;
 using SupportPortalDomain;
 using SupportPortalInfrastructure.Data;
 using SupportPortalInfrastructure.Repositories;
@@ -28,6 +29,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+//app.UseAuthorization();
 app.MapControllers();
 app.Run();

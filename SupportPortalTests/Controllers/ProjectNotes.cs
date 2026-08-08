@@ -92,10 +92,9 @@ public class ProjectNotesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         ProjectNoteEntity entity = new ProjectNoteEntity { Id = 2L, Name = "Closed" };
-        var list = new List<ProjectNoteEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
 

@@ -101,14 +101,13 @@ public class CustomersControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         IndustryEntity industry = new IndustryEntity { Id = 1L, Name = "DEFAULT" };
-        CustomerEntity entity = new CustomerEntity { Id = 2L, Name = "Closed", IndustryId = 1L };
-        var list = new List<CustomerEntity> { entity }.AsQueryable();
+        CustomerEntity entity = new CustomerEntity { Id = 2L, Name = "Closed", IndustryId = 1L, Deleted = false };
 
         Mock<IGenericRepository<IndustryEntity>> repoIndustry = new Mock<IGenericRepository<IndustryEntity>>();
         repoIndustry.Setup(i => i.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(industry);
 
         Mock<IGenericRepository<CustomerEntity>> repoMock = new Mock<IGenericRepository<CustomerEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         CustomersController controller = new CustomersController(repoMock.Object, repoIndustry.Object, _mapper);
 

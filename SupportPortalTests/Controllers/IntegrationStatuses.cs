@@ -92,10 +92,9 @@ public class IntegrationStatusesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         IntegrationStatusEntity entity = new IntegrationStatusEntity { Id = 2L, Name = "Closed" };
-        var list = new List<IntegrationStatusEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<IntegrationStatusEntity>> repoMock = new Mock<IGenericRepository<IntegrationStatusEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IntegrationStatusesController controller = new IntegrationStatusesController(repoMock.Object, _mapper);
 

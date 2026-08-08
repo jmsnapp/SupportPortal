@@ -65,7 +65,7 @@ public class Escalation  : PortalObject
 
     public string? RootCause { get; set; }
 
-    public string? RecommendedAction { get; set; }
+    public string? RecommendedActions { get; set; }
 
     public Escalation()
     {
@@ -77,7 +77,7 @@ public class Escalation  : PortalObject
         ProblemSummary = string.Empty;
         CustomerImpact = string.Empty;
         RootCause = string.Empty;
-        RecommendedAction = string.Empty;
+        RecommendedActions = string.Empty;
 
     }
 
@@ -156,7 +156,7 @@ public class ProjectPhase : PortalObject
 
     public Phase Phase { get; set; }
 
-    public decimal? Percentage { get; set; }
+    public decimal Percentage { get; set; }
 
     public int Order { get; set; }
 

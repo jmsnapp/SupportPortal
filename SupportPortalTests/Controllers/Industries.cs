@@ -89,10 +89,9 @@ public class IndustriesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         IndustryEntity entity = new IndustryEntity { Id = 2L, Name = "Closed" };
-        var list = new List<IndustryEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IndustriesController controller = new IndustriesController(repoMock.Object, _mapper);
 

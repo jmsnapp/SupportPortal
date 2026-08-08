@@ -193,7 +193,6 @@ public class TicketsControllerTests
         SupportStatusEntity supportStatusEntity = new SupportStatusEntity { Id = 1L, Name = "SupportStatus1" };
         TicketNoteEntity ticketNoteEntity = new TicketNoteEntity { Id = 1L, TicketId = 1L, Note = "Note1" };
         TicketEntity entity = new TicketEntity { Id = 2L, Name = "Closed", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
-        var list = new List<TicketEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<EscalationEntity>> escalationRepoMock = new Mock<IGenericRepository<EscalationEntity>>();
         escalationRepoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(escalationEntity);
@@ -223,7 +222,7 @@ public class TicketsControllerTests
         ticketNoteRepoMock.Setup(r => r.GetByTicketIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(new List<TicketNoteEntity> { ticketNoteEntity });
 
         Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         TicketsController controller = new TicketsController(repoMock.Object,
                                                              customerRepoMock.Object,

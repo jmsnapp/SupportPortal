@@ -92,10 +92,9 @@ public class PhasesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         PhaseEntity entity = new PhaseEntity { Id = 2L, Name = "Closed" };
-        var list = new List<PhaseEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<PhaseEntity>> repoMock = new Mock<IGenericRepository<PhaseEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         PhasesController controller = new PhasesController(repoMock.Object, _mapper);
 

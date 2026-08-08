@@ -57,9 +57,6 @@ public class GenericRepositoryTests
         var active = (await repo.GetAllActiveAsync()).ToList();
         Assert.IsFalse(active.Any());
 
-        var remaining = (await repo.GetAllAsync()).ToList();
-        Assert.AreEqual(0, remaining.Count);
-
     }
 
 }

@@ -92,10 +92,9 @@ public class TicketNotesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         TicketNoteEntity entity = new TicketNoteEntity { Id = 2L, Name = "Closed", TicketId = 1L };
-        var list = new List<TicketNoteEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object, _mapper);
 

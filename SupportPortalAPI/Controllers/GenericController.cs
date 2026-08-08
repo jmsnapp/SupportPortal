@@ -28,8 +28,8 @@ namespace SupportPortalAPI.Controllers
 
         }
 
-        // GET api/[controller]/{id}
-        [HttpGet("{id:Int64}")]
+        // GET api/[controller]/{id:long}
+        [HttpGet("{id:long}")]
         public virtual async Task<IActionResult> GetById(Int64 id, CancellationToken ct = default)
         {
             var entity = await _repo.GetByIdAsync(id, ct);
@@ -43,10 +43,7 @@ namespace SupportPortalAPI.Controllers
         [HttpGet("byname/{name}")]
         public virtual async Task<IActionResult> GetByName(string name, CancellationToken ct = default)
         {
-            var entities = await _repo.GetAllAsync(ct);
-            if (entities == null) return NotFound();
-
-            var entity = entities.Where(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault<TEntity>();
+            var entity = await _repo.GetByNameAsync(name, ct);
             if (entity == null) return NotFound();
 
             var model = await MapEntityToModelAsync(entity);
@@ -75,8 +72,8 @@ namespace SupportPortalAPI.Controllers
 
         }
 
-        // PUT api/[controller]/{id}
-        [HttpPut("{id:Int64}")]
+        // PUT api/[controller]/{id:long}
+        [HttpPut("{id:long}")]
         public virtual async Task<IActionResult> Update(Int64 id, [FromBody] TEntity updated, CancellationToken ct = default)
         {
             if (updated == null || id != updated.Id) return BadRequest();

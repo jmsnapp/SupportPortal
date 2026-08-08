@@ -92,10 +92,9 @@ public class IntegrationTypesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         IntegrationTypeEntity entity = new IntegrationTypeEntity { Id = 2L, Name = "Closed" };
-        var list = new List<IntegrationTypeEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<IntegrationTypeEntity>> repoMock = new Mock<IGenericRepository<IntegrationTypeEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IntegrationTypesController controller = new IntegrationTypesController(repoMock.Object, _mapper);
 

@@ -29,11 +29,11 @@ public class CustomerEntity : PortalEntity
 {
     public Int64 IndustryId { get; set; }
 
-    public string PrimaryContact { get; set; }
+    public string PrimaryContactName { get; set; }
 
     public string PrimaryContactEmail { get; set; }
 
-    public string TechnicalContact { get; set; }
+    public string TechnicalContactName { get; set; }
 
     public string TechnicalContactEmail { get; set; }
 
@@ -47,9 +47,9 @@ public class CustomerEntity : PortalEntity
         base.Deleted = false;
 
         IndustryId = 0;
-        PrimaryContact = string.Empty;
+        PrimaryContactName = string.Empty;
         PrimaryContactEmail = string.Empty;
-        TechnicalContact = string.Empty;
+        TechnicalContactName = string.Empty;
         TechnicalContactEmail = string.Empty;
         CreatedDate = DateTime.Now;
 
@@ -65,7 +65,7 @@ public class EscalationEntity  : PortalEntity
 
     public string? RootCause { get; set; }
 
-    public string? RecommendedAction { get; set; }
+    public string? RecommendedActions { get; set; }
 
     public EscalationEntity()
     {
@@ -77,7 +77,7 @@ public class EscalationEntity  : PortalEntity
         ProblemSummary = string.Empty;
         CustomerImpact = string.Empty;
         RootCause = string.Empty;
-        RecommendedAction = string.Empty;
+        RecommendedActions = string.Empty;
 
     }
 
@@ -156,7 +156,7 @@ public class LinkProjectPhaseEntity : PortalEntity
 
     public Int64 PhaseId { get; set; }
 
-    public decimal? Percentage { get; set; }
+    public decimal Percentage { get; set; }
 
     public int Order { get; set; }
 
@@ -183,9 +183,9 @@ public class ProjectEntity : PortalEntity
 {
     public Int64 CurrentPhase { get; set; }
 
-    public DateTime TargetGoLive { get; set; }
+    public DateTime TargetGoLiveDate { get; set; }
 
-    public DateTime? ActualGoLive { get; set; }
+    public DateTime? ActualGoLiveDate { get; set; }
 
     public ProjectEntity()
     {
@@ -195,7 +195,7 @@ public class ProjectEntity : PortalEntity
         base.Deleted = false;
 
         CurrentPhase = 0;
-        TargetGoLive = DateTime.Now;
+        TargetGoLiveDate = DateTime.Now;
 
     }
 
@@ -238,7 +238,7 @@ public class TicketEntity : PortalEntity
 
     public Int64? EscalationId { get; set; }
 
-    public Int64 SupportStatusId { get; set; }
+    public Int64 StatusId { get; set; }
 
     public string? Reproduce { get; set; }
 
@@ -262,6 +262,7 @@ public class TicketEntity : PortalEntity
         CustomerId = 0;
         IntegrationId = 0;
         SeverityId = 0;
+        StatusId = 0;
         EscalationId = null;
         Reproduce = string.Empty;
         ReportedBy = string.Empty;

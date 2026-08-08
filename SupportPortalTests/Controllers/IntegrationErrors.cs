@@ -92,10 +92,9 @@ public class IntegrationErrorsControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         IntegrationErrorEntity entity = new IntegrationErrorEntity { Id = 2L, Name = "Closed" };
-        var list = new List<IntegrationErrorEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object, _mapper);
 

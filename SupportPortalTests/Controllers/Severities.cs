@@ -92,10 +92,9 @@ public class SeveritiesControllerTests
     public async Task GetByName_ReturnsOk_WhenFound()
     {
         SeverityEntity entity = new SeverityEntity { Id = 2L, Name = "Closed" };
-        IQueryable<SeverityEntity> list = new List<SeverityEntity> { entity }.AsQueryable();
 
         Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object, _mapper);
 
