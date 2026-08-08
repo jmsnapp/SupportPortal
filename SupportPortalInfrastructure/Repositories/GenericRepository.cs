@@ -30,12 +30,22 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     public async Task<TEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default) =>
         await _dbSet.FindAsync(new object[] { id }, cancellationToken);
 
+    public async Task<TEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        TEntity objReturn = null;
+
+        List<TEntity> lstTemp = await _dbSet.Where(x => x.Name == name && x.Deleted == false).ToListAsync(cancellationToken);
+        if(lstTemp.Count > 0)
+           objReturn = lstTemp.First();
+
+        return objReturn;
+
+    }
+
     public async Task AddAsync(TEntity entity, CancellationToken cancellationToken = default) =>
         await _dbSet.AddAsync(entity, cancellationToken);
 
     public void Update(TEntity entity) => _dbSet.Update(entity);
-
-    public void Remove(TEntity entity) => _dbSet.Remove(entity);
 
     public IQueryable<TEntity> Query() => _dbSet.AsQueryable();
 

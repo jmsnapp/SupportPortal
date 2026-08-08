@@ -12,11 +12,11 @@ public interface IGenericRepository<PortalEntity>
 
     Task<PortalEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
 
+    Task<PortalEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
+
     Task AddAsync(PortalEntity entity, CancellationToken cancellationToken = default);
 
     void Update(PortalEntity entity);
-
-    void Remove(PortalEntity entity);
 
     IQueryable<PortalEntity> Query();
 

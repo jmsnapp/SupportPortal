@@ -14,7 +14,7 @@ public class LinkProjectPhaseRepository : GenericRepository<LinkProjectPhaseEnti
 
     public async Task<IEnumerable<LinkProjectPhaseEntity>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default) =>
         await _dbSet
-            .FromSql($"SELECT * FROM LinkProjectPhase WHERE Deleted = 0 AND ProjectId = {projectId}") 
+            .Where(link => link.ProjectId == projectId && !link.Deleted)
             .ToListAsync(cancellationToken);
 
 }

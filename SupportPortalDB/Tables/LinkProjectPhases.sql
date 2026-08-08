@@ -1,4 +1,4 @@
-﻿CREATE TABLE [dbo].[LinkProjectPhase]
+﻿CREATE TABLE [dbo].[LinkProjectPhases]
 (
 	[Id] BIGINT NOT NULL IDENTITY(0,1) PRIMARY KEY, 
     [Name] NVARCHAR(63) NOT NULL, 
@@ -15,12 +15,12 @@
 
 GO
 
-CREATE INDEX [IX_LinkProjectPhase_ProjectId] ON [dbo].[LinkProjectPhase] ([ProjectId])
+CREATE INDEX [IX_LinkProjectPhase_ProjectId] ON [dbo].[LinkProjectPhases] ([ProjectId])
 
 GO
 
-CREATE INDEX [IX_LinkProjectPhase_Phase] ON [dbo].[LinkProjectPhase] ([PhaseId])
+CREATE INDEX [IX_LinkProjectPhase_Phase] ON [dbo].[LinkProjectPhases] ([PhaseId])
 
 GO
 
-CREATE INDEX [IX_LinkProjectPhase_Deleted] ON [dbo].[LinkProjectPhase] ([Deleted])
+CREATE INDEX [IX_LinkProjectPhase_Deleted] ON [dbo].[LinkProjectPhases] ([Deleted])

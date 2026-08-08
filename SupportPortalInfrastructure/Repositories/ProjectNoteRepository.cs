@@ -14,7 +14,7 @@ public class ProjectNoteRepository : GenericRepository<ProjectNoteEntity>, IProj
 
     public async Task<IEnumerable<ProjectNoteEntity>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default) =>
         await _dbSet
-            .Where(pn => pn.ProjectId == projectId)
+            .Where(pn => pn.ProjectId == projectId && !pn.Deleted)
             .ToListAsync(cancellationToken);
 
 }
