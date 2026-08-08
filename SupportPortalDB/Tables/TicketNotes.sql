@@ -6,7 +6,7 @@
     [TicketId] BIGINT NOT NULL, 
     [Note] NVARCHAR(MAX) NOT NULL DEFAULT '', 
     [Deleted] BIT NOT NULL DEFAULT 0, 
-    [CreateTime] DATETIME NOT NULL DEFAULT '01/01/1900 00:00:00.000', 
+    [CreateTime] DATETIME NOT NULL DEFAULT 0, 
     CONSTRAINT [AK_TicketNote_Name] UNIQUE ([Name]), 
     CONSTRAINT [FK_TicketNote_ToTicket] FOREIGN KEY ([TicketId]) REFERENCES [Tickets]([Id])
 )

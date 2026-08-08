@@ -6,7 +6,7 @@
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [ProjectId] BIGINT NOT NULL, 
     [Note] NVARCHAR(MAX) NOT NULL DEFAULT '', 
-    [CreateTime] DATETIME NOT NULL DEFAULT '01/01/1900 00:00:00.000', 
+    [CreateTime] DATETIME NOT NULL DEFAULT 0, 
     CONSTRAINT [AK_ProjectNotes_Name] UNIQUE ([Name]), 
     CONSTRAINT [FK_ProjectNotes_ToProject] FOREIGN KEY ([ProjectId]) REFERENCES [Projects]([Id]), 
 )
