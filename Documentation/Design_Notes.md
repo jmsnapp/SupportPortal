@@ -58,4 +58,12 @@ The Application Programming Interface (API) project is a very simple project.  I
 
 # Application
 
-I have not built out the Application project yet, but it will be a .NET 10 Blazor WebAssembly project.  It will have a dependency on the Domain project, and it will have a dependency on the API project.  The Models in the Application project will be mapped to the Domain models, and the UI will be built using Blazor components that call the API endpoints to get data from the Infrastructure project.
+The User Interface application is a .NET 10 Server-Side Blazor project, using an MVC design pattern.  It uses the SupportPortalDomain project for its models.  It does not need it's own set of DTOs, as all the data transfer is done by JSON under the hood to the SupportPortal API via HTTP calls. Using the Models from the SupportPortal Domain provides a much richer user experience with a minimum of extra coding.
+
+# Unit Tests
+
+I have included a Unit Test project in this solution.  It is a .NET 10 MSTest project.  It has unit tests for the Infrstructure repositories, the API controllers, and the UI APIClients.  While many of these unit tests may appear trivial, that is mostly due to the conscious choice to keep individual repository and API methods small and concise.  These tests are NOT trivial, and executing them did bring to light several issues with inconsistent naming conventions (which EFCore HEAVILY relies upon) and assumptions made about the design by the AI scaffolding that were not necessarily correct. Even a supposedly "trivial" unit test keeps you (or your AI assistant) from doing something stupid. 
+
+# Future Work
+
+The next step for this project is to add User Authentication and Authorization.  I have not done this yet, as I wanted to get the basic system up and running first.  I plan to use OAuth2 for this, along with role-based security, and I will be adding new tables to the database to support this. This will also require some changes to the API and the UI to handle login and logout functionality, user maintenance, and user roles.

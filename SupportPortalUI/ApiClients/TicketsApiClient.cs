@@ -1,7 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
 using SupportPortalDomain.Models;
-using Newtonsoft.Json;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -19,8 +18,7 @@ public sealed class TicketsApiClient : ITicketsApiClient
     {
         try
         {
-            string strReturn = await _http.GetStringAsync("api/projects/active", cancellationToken);
-            List<Ticket>? items = JsonConvert.DeserializeObject<List<Ticket>>(strReturn);
+            List<Ticket>? items = await _http.GetFromJsonAsync<List<Ticket>>("api/tickets/active", cancellationToken);
             return items?.Take(take) ?? Array.Empty<Ticket>();
 
         }
