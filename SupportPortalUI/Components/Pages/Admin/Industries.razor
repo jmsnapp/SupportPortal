@@ -1,5 +1,5 @@
 @page "/admin/industries"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IIndustriesApiClient Clients
 
 <PageTitle>Admin - Industries</PageTitle>
@@ -44,14 +44,14 @@ else
 <ConfirmModal IsOpen="showConfirm" IsOpenChanged="@(b => showConfirm = b)" Title="Delete Industry" Message="Are you sure you want to mark this industry as deleted?" OnConfirmed="OnDeleteConfirmed" />
 
 @code {
-    private IEnumerable<ReferenceDto> items = Array.Empty<ReferenceDto>();
+    private IEnumerable<Industry> items = Array.Empty<Industry>();
     private bool isLoading = true;
     private string? error;
 
     private bool showCreate;
     private bool showEdit;
-    private ReferenceDto newModel = new();
-    private ReferenceDto editModel = new();
+    private Industry newModel = new();
+    private Industry editModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,16 +73,16 @@ else
         finally { isLoading = false; }
     }
 
-    private void Edit(ReferenceDto dto)
+    private void Edit(Industry dto)
     {
-        editModel = new ReferenceDto { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
+        editModel = new Industry { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
         showEdit = true;
     }
 
-    private ReferenceDto? deletingModel;
+    private Industry? deletingModel;
     private bool showConfirm;
 
-    private void ConfirmDelete(ReferenceDto dto)
+    private void ConfirmDelete(Industry dto)
     {
         deletingModel = dto;
         showConfirm = true;
@@ -97,16 +97,33 @@ else
         deletingModel = null;
     }
 
-    private async Task OnCreateSaved(ReferenceDto dto)
+    private async Task OnCreateSaved(PortalObject dto)
     {
-        var created = await Clients.CreateAsync(dto);
+        Industry industry = new Industry
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var created = await Clients.CreateAsync(industry);
         if (created is not null) await LoadAsync();
     }
 
-    private async Task OnEditSaved(ReferenceDto dto)
+    private async Task OnEditSaved(PortalObject dto)
     {
         if (dto.Id == 0) return;
-        var ok = await Clients.UpdateAsync(dto.Id, dto);
+
+        Industry industry = new Industry
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var ok = await Clients.UpdateAsync(dto.Id, industry);
         if (ok) await LoadAsync();
     }
 }

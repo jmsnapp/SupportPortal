@@ -25,10 +25,10 @@ namespace SupportPortalAPI.Controllers
             _projectNoteRepo = projectNoteRepo;
         }
 
-        protected override Task<Project> MapEntityToModelAsync(ProjectEntity entity)
+        protected override async Task<Project> MapEntityToModelAsync(ProjectEntity entity)
         {
-            var model = _mapper.MapProjectEntity2Project(entity, _projectPhaseRepo, _phaseRepo, _projectNoteRepo);
-            return Task.FromResult(model);
+            var model = await _mapper.MapProjectEntity2ProjectAsync(entity, _projectPhaseRepo, _phaseRepo, _projectNoteRepo);
+            return model;
         }
     }
 }

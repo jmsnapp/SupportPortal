@@ -1,5 +1,5 @@
 @page "/admin/support-statuses"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.ISupportStatusesApiClient Clients
 
 <PageTitle>Admin - Support Statuses</PageTitle>
@@ -44,14 +44,14 @@ else
 <ConfirmModal IsOpen="showConfirm" IsOpenChanged="@(b => showConfirm = b)" Title="Delete Support Status" Message="Are you sure you want to mark this support status as deleted?" OnConfirmed="OnDeleteConfirmed" />
 
 @code {
-    private IEnumerable<ReferenceDto> items = Array.Empty<ReferenceDto>();
+    private IEnumerable<SupportStatus> items = Array.Empty<SupportStatus>();
     private bool isLoading = true;
     private string? error;
 
     private bool showCreate;
     private bool showEdit;
-    private ReferenceDto newModel = new();
-    private ReferenceDto editModel = new();
+    private SupportStatus newModel = new();
+    private SupportStatus editModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,16 +73,16 @@ else
         finally { isLoading = false; }
     }
 
-    private void Edit(ReferenceDto dto)
+    private void Edit(SupportStatus dto)
     {
-        editModel = new ReferenceDto { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
+        editModel = new SupportStatus { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
         showEdit = true;
     }
 
-    private ReferenceDto? deletingModel;
+    private SupportStatus? deletingModel;
     private bool showConfirm;
 
-    private void ConfirmDelete(ReferenceDto dto)
+    private void ConfirmDelete(SupportStatus dto)
     {
         deletingModel = dto;
         showConfirm = true;
@@ -97,16 +97,37 @@ else
         deletingModel = null;
     }
 
-    private async Task OnCreateSaved(ReferenceDto dto)
+    private async Task OnCreateSaved(PortalObject dto)
     {
-        var created = await Clients.CreateAsync(dto);
+        SupportStatus status = new SupportStatus
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+
+        var created = await Clients.CreateAsync(status);
         if (created is not null) await LoadAsync();
+
     }
 
-    private async Task OnEditSaved(ReferenceDto dto)
+    private async Task OnEditSaved(PortalObject dto)
     {
         if (dto.Id == 0) return;
-        var ok = await Clients.UpdateAsync(dto.Id, dto);
+
+        SupportStatus status = new SupportStatus
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var ok = await Clients.UpdateAsync(dto.Id, status);
         if (ok) await LoadAsync();
+
     }
+
 }

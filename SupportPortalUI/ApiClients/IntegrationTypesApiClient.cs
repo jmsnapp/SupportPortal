@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,25 +13,25 @@ public sealed class IntegrationTypesApiClient : IIntegrationTypesApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<IntegrationType>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/integrationtypes/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<IntegrationType>>("api/integrationtypes/getall", cancellationToken);
+            return items ?? Array.Empty<IntegrationType>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<IntegrationType>();
         }
     }
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<IntegrationType?> CreateAsync(IntegrationType dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/integrationtypes", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<IntegrationType>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -39,7 +39,7 @@ public sealed class IntegrationTypesApiClient : IIntegrationTypesApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, IntegrationType dto, CancellationToken cancellationToken = default)
     {
         try
         {

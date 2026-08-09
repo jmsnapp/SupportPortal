@@ -1,5 +1,5 @@
 @page "/projects"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IProjectsApiClient ProjectsClient
 
 <PageTitle>Projects</PageTitle>
@@ -17,15 +17,15 @@ else if (!string.IsNullOrEmpty(error))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Id</th><th>Name</th><th>Phase</th><th>Target Go Live</th></tr></thead>
+        <thead><tr><th>Id</th><th>Description</th><th>Phase</th><th>Target Go Live</th></tr></thead>
         <tbody>
             @foreach (var p in projects)
             {
                 <tr>
                     <td>@p.Id</td>
-                    <td><NavLink class="nav-link p-0" href="@($"/projects/{p.Id}")">@p.Name</NavLink></td>
-                    <td>@p.CurrentPhase</td>
-                    <td>@(p.TargetGoLiveDate?.ToString("d") ?? string.Empty)</td>
+                    <td><NavLink class="nav-link p-0" href="@($"/projects/{p.Id}")">@p.Description</NavLink></td>
+                    <td>@p.CurrentPhase.Description</td>
+                    <td>@(p.TargetGoLive.ToString("d") ?? string.Empty)</td>
                 </tr>
             }
         </tbody>
@@ -33,7 +33,7 @@ else
 }
 
 @code {
-    private IEnumerable<ProjectDto> projects = Array.Empty<ProjectDto>();
+    private IEnumerable<Project> projects = Array.Empty<Project>();
     private bool isLoading = true;
     private string? error;
 

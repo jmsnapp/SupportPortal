@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SupportPortalUI.ApiClients;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalTests.ApiClients;
 
@@ -13,7 +13,7 @@ public class TicketsApiClientTests
     [TestMethod]
     public async Task GetByIdAsync_ReturnsTicket()
     {
-        var expected = new TicketDto { Id = 42, Name = "T42" };
+        var expected = new Ticket { Id = 42, Name = "T42" };
         var handler = new FakeHandler(req => new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = JsonContent.Create(expected)

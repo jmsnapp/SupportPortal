@@ -1,5 +1,5 @@
 @page "/integrations"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IIntegrationsApiClient IntegrationsClient
 
 <PageTitle>Integrations</PageTitle>
@@ -17,14 +17,14 @@ else if (!string.IsNullOrEmpty(error))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Last Sync</th><th>Retries</th></tr></thead>
+        <thead><tr><th>Description</th><th>Type</th><th>Status</th><th>Last Sync</th><th>Retries</th></tr></thead>
         <tbody>
             @foreach (var i in integrations)
             {
-                <tr class="@(i.IsHealthy ? string.Empty : "table-danger")">
-                    <td><NavLink class="nav-link p-0" href="@($"/integrations/{i.Id}")">@i.Name</NavLink></td>
-                    <td>@i.IntegrationType</td>
-                    <td>@i.CurrentStatus</td>
+                <tr class="@(i.CurrentStatus.Name == "OPERATIONAL" ? string.Empty : "table-danger")">
+                    <td><NavLink class="nav-link p-0" href="@($"/integrations/{i.Id}")">@i.Description</NavLink></td>
+                    <td>@i.Type.Description</td>
+                    <td>@i.CurrentStatus.Description</td>
                     <td>@(i.LastSuccessfulSync?.ToString("g") ?? "-")</td>
                     <td>@i.RetryCount</td>
                 </tr>
@@ -34,7 +34,7 @@ else
 }
 
 @code {
-    private IEnumerable<IntegrationDto> integrations = Array.Empty<IntegrationDto>();
+    private IEnumerable<Integration> integrations = Array.Empty<Integration>();
     private bool isLoading = true;
     private string? error;
 

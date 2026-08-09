@@ -1,9 +1,9 @@
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients.Interfaces;
 
 public interface IProjectNotesApiClient
 {
-    Task<IEnumerable<ProjectNoteDto>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default);
-    Task<ProjectNoteDto?> CreateAsync(ProjectNoteDto note, CancellationToken cancellationToken = default);
+    Task<IEnumerable<ProjectNote>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default);
+    Task<ProjectNote?> CreateAsync(ProjectNote note, CancellationToken cancellationToken = default);
 }

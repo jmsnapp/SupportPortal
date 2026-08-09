@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,24 +13,24 @@ public sealed class CustomersApiClient : ICustomersApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Customer  >> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/customers/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<Customer>>("api/customers/getall", cancellationToken);
+            return items ?? Array.Empty<Customer>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<Customer>();
         }
     }
 
-    public async Task<ReferenceDto?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
+    public async Task<Customer?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _http.GetFromJsonAsync<ReferenceDto>($"api/customers/{id}", cancellationToken);
+            return await _http.GetFromJsonAsync<Customer>($"api/customers/{id}", cancellationToken);
         }
         catch
         {
@@ -38,13 +38,13 @@ public sealed class CustomersApiClient : ICustomersApiClient
         }
     }
 
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<Customer?> CreateAsync(Customer dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/customers", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<Customer>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -52,7 +52,7 @@ public sealed class CustomersApiClient : ICustomersApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, Customer dto, CancellationToken cancellationToken = default)
     {
         try
         {

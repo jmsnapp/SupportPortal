@@ -1,5 +1,5 @@
-@page "/projects/{Id:int}"
-@using SupportPortalUI.Models
+@page "/projects/{Id:long}"
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IProjectsApiClient ProjectsClient
 
 <PageTitle>Project Details</PageTitle>
@@ -17,9 +17,9 @@ else if (project is not null)
     <h3>@project.Name</h3>
     <dl class="row">
         <dt class="col-sm-3">Current Phase</dt>
-        <dd class="col-sm-9">@project.CurrentPhase</dd>
+        <dd class="col-sm-9">@project.CurrentPhase.Description</dd>
         <dt class="col-sm-3">Target Go Live</dt>
-        <dd class="col-sm-9">@(project.TargetGoLiveDate?.ToString("d") ?? "")</dd>
+        <dd class="col-sm-9">@(project.TargetGoLive.ToString("d") ?? "")</dd>
     </dl>
 
     <div class="mb-3">
@@ -35,7 +35,7 @@ else if (project is not null)
     [Parameter]
     public int Id { get; set; }
 
-    private ProjectDto? project;
+    private Project? project;
     private bool isLoading = true;
     private string? error;
 

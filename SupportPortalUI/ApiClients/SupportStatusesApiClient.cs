@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,25 +13,25 @@ public sealed class SupportStatusesApiClient : ISupportStatusesApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<SupportStatus>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/supportstatuses/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<SupportStatus>>("api/supportstatuses/getall", cancellationToken);
+            return items ?? Array.Empty<SupportStatus>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<SupportStatus>();
         }
     }
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<SupportStatus?> CreateAsync(SupportStatus dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/supportstatuses", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<SupportStatus>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -39,7 +39,7 @@ public sealed class SupportStatusesApiClient : ISupportStatusesApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, SupportStatus dto, CancellationToken cancellationToken = default)
     {
         try
         {

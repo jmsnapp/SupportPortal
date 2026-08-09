@@ -1,4 +1,4 @@
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.ITicketNotesApiClient TicketNotesClient
 @inject SupportPortalUI.ApiClients.Interfaces.IProjectNotesApiClient ProjectNotesClient
 
@@ -24,8 +24,8 @@
                         @foreach (var n in notes)
                         {
                             <li class="list-group-item">
-                                <div><strong>@n.Author</strong> <small class="text-muted">@n.CreatedDate.ToString("g")</small></div>
-                                <div>@n.Text</div>
+                                <div><strong>@n.Description</strong></div>
+                                <div>@n.NoteText</div>
                             </li>
                         }
                     </ul>
@@ -63,7 +63,7 @@
     private string? error;
     private string? newText;
 
-    private record NoteView(string? Author, string? Text, DateTime CreatedDate);
+    private record NoteView(string? Description, string? NoteText);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -79,12 +79,12 @@
             if (TicketId is not null)
             {
                 var t = await TicketNotesClient.GetByTicketIdAsync(TicketId.Value);
-                notes = t.Select(n => new NoteView(n.Author, n.Text, n.CreatedDate));
+                notes = t.Select(n => new NoteView(n.Description, n.Note));
             }
             else if (ProjectId is not null)
             {
                 var p = await ProjectNotesClient.GetByProjectIdAsync(ProjectId.Value);
-                notes = p.Select(n => new NoteView(n.Author, n.Text, n.CreatedDate));
+                notes = p.Select(n => new NoteView(n.Description, n.Note));
             }
         }
         catch (Exception ex)
@@ -105,12 +105,12 @@
         {
             if (TicketId is not null)
             {
-                var dto = new TicketNoteDto { TicketId = TicketId.Value, Author = "UI", Text = newText };
+                var dto = new TicketNote { TicketId = TicketId.Value, Description = "Default", Note = newText };
                 await TicketNotesClient.CreateAsync(dto);
             }
             else if (ProjectId is not null)
             {
-                var dto = new ProjectNoteDto { ProjectId = ProjectId.Value, Author = "UI", Text = newText };
+                var dto = new ProjectNote { ProjectId = ProjectId.Value, Description = "Default", Note = newText };
                 await ProjectNotesClient.CreateAsync(dto);
             }
 

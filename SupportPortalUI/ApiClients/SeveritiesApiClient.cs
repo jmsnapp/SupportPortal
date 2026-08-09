@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,25 +13,25 @@ public sealed class SeveritiesApiClient : ISeveritiesApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Severity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/severities/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<Severity>>("api/severities/getall", cancellationToken);
+            return items ?? Array.Empty<Severity>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<Severity>();
         }
     }
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<Severity?> CreateAsync(Severity dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/severities", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<Severity>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -39,7 +39,7 @@ public sealed class SeveritiesApiClient : ISeveritiesApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, Severity dto, CancellationToken cancellationToken = default)
     {
         try
         {

@@ -1,5 +1,5 @@
-@page "/escalations/{Id:int}"
-@using SupportPortalUI.Models
+@page "/escalations/{Id:long}"
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IEscalationsApiClient EscalationsClient
 @inject SupportPortalUI.ApiClients.Interfaces.ITicketsApiClient TicketsClient
 
@@ -15,9 +15,9 @@ else if (!string.IsNullOrEmpty(error))
 }
 else if (escalation is not null)
 {
-    <h3>@escalation.Name</h3>
+    <h3>@escalation.Description</h3>
     <p>@escalation.ProblemSummary</p>
-    <p><strong>Created:</strong> @escalation.CreatedDate.ToString("g")</p>
+    <p><strong>Recommendations</strong> escalation.RecommendedActions</p>
 
     <h5>Linked Tickets</h5>
     @if (linkedLoading)
@@ -33,7 +33,7 @@ else if (escalation is not null)
         <ul class="list-group">
             @foreach (var t in linkedTickets)
             {
-                <li class="list-group-item"><a href="/tickets/@t.Id">@t.Name</a> <small class="text-muted">@t.Status</small></li>
+                <li class="list-group-item"><a href="/tickets/@t.Id">@t.Description</a> <small class="text-muted">@t.Status.Description</small></li>
             }
         </ul>
     }
@@ -43,11 +43,11 @@ else if (escalation is not null)
     [Parameter]
     public int Id { get; set; }
 
-    private EscalationDto? escalation;
+    private Escalation? escalation;
     private bool isLoading = true;
     private string? error;
 
-    private IEnumerable<TicketDto> linkedTickets = Array.Empty<TicketDto>();
+    private IEnumerable<Ticket> linkedTickets = Array.Empty<Ticket>();
     private bool linkedLoading;
     private string? linkedError;
 
@@ -83,7 +83,7 @@ else if (escalation is not null)
         try
         {
             var all = await TicketsClient.GetActiveAsync(100);
-            linkedTickets = all.Where(t => t.EscalationId == Id);
+            linkedTickets = all.Where(t => t.Escalation.Id == Id);
         }
         catch (Exception ex)
         {

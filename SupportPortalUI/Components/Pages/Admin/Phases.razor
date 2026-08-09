@@ -1,5 +1,5 @@
 @page "/admin/phases"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IPhasesApiClient Clients
 
 <PageTitle>Admin - Phases</PageTitle>
@@ -44,14 +44,14 @@ else
 <ConfirmModal IsOpen="showConfirm" IsOpenChanged="@(b => showConfirm = b)" Title="Delete Phase" Message="Are you sure you want to mark this phase as deleted?" OnConfirmed="OnDeleteConfirmed" />
 
 @code {
-    private IEnumerable<ReferenceDto> items = Array.Empty<ReferenceDto>();
+    private IEnumerable<Phase> items = Array.Empty<Phase>();
     private bool isLoading = true;
     private string? error;
 
     private bool showCreate;
     private bool showEdit;
-    private ReferenceDto newModel = new();
-    private ReferenceDto editModel = new();
+    private Phase newModel = new();
+    private Phase editModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,16 +73,16 @@ else
         finally { isLoading = false; }
     }
 
-    private void Edit(ReferenceDto dto)
+    private void Edit(Phase dto)
     {
-        editModel = new ReferenceDto { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
+        editModel = new Phase { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
         showEdit = true;
     }
 
-    private ReferenceDto? deletingModel;
+    private Phase? deletingModel;
     private bool showConfirm;
 
-    private void ConfirmDelete(ReferenceDto dto)
+    private void ConfirmDelete(Phase dto)
     {
         deletingModel = dto;
         showConfirm = true;
@@ -95,18 +95,39 @@ else
         var ok = await Clients.UpdateAsync(deletingModel.Id, deletingModel);
         if (ok) await LoadAsync();
         deletingModel = null;
+
     }
 
-    private async Task OnCreateSaved(ReferenceDto dto)
+    private async Task OnCreateSaved(PortalObject dto)
     {
-        var created = await Clients.CreateAsync(dto);
+        Phase phase = new Phase
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var created = await Clients.CreateAsync(phase);
         if (created is not null) await LoadAsync();
+
     }
 
-    private async Task OnEditSaved(ReferenceDto dto)
+    private async Task OnEditSaved(PortalObject dto)
     {
         if (dto.Id == 0) return;
-        var ok = await Clients.UpdateAsync(dto.Id, dto);
+
+        Phase phase = new Phase
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var ok = await Clients.UpdateAsync(dto.Id, phase);
         if (ok) await LoadAsync();
+
     }
+
 }

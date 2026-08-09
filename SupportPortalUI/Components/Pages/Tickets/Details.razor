@@ -1,5 +1,5 @@
-@page "/tickets/{Id:int}"
-@using SupportPortalUI.Models
+@page "/tickets/{Id:long}"
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.ITicketsApiClient TicketsClient
 
 <PageTitle>Ticket Details</PageTitle>
@@ -14,18 +14,18 @@ else if (!string.IsNullOrEmpty(error))
 }
 else if (ticket is not null)
 {
-    <h3>@ticket.Name</h3>
+    <h3>@ticket.Description</h3>
     <dl class="row">
         <dt class="col-sm-3">Severity</dt>
-        <dd class="col-sm-9">@ticket.Severity</dd>
+        <dd class="col-sm-9">@ticket.Severity.Description</dd>
         <dt class="col-sm-3">Status</dt>
-        <dd class="col-sm-9">@ticket.Status</dd>
+        <dd class="col-sm-9">@ticket.Status.Description</dd>
         <dt class="col-sm-3">Assigned To</dt>
         <dd class="col-sm-9">@ticket.AssignedTo</dd>
         <dt class="col-sm-3">Created</dt>
         <dd class="col-sm-9">@ticket.CreatedDate.ToString("g")</dd>
         <dt class="col-sm-3">Escalation</dt>
-        <dd class="col-sm-9">@((ticket.EscalationId is null) ? "None" : (MarkupString)$"<a href=\"/escalations/{ticket.EscalationId}\">Escalation {ticket.EscalationId}</a>")</dd>
+        <dd class="col-sm-9">@((ticket.Escalation is null) ? "None" : (MarkupString)$"<a href=\"/escalations/{ticket.Escalation.Id}\">Escalation {ticket.Escalation.Description}</a>")</dd>
     </dl>
 
     <div class="mb-3">
@@ -41,7 +41,7 @@ else if (ticket is not null)
     [Parameter]
     public Int64 Id { get; set; }
 
-    private TicketDto? ticket;
+    private Ticket? ticket;
     private bool isLoading = true;
     private string? error;
 
@@ -80,7 +80,7 @@ else if (ticket is not null)
     private async Task OnEscalationCreated(Int64 escalationId)
     {
         if (ticket is null) return;
-        ticket.EscalationId = escalationId;
+        ticket.Escalation.Id = escalationId;
         var ok = await TicketsClient.UpdateAsync(ticket.Id, ticket);
         if (!ok)
         {

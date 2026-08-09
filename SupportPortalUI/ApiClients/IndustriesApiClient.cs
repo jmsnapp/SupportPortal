@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,24 +13,24 @@ public sealed class IndustriesApiClient : IIndustriesApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Industry>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/industries/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<Industry>>("api/industries/getall", cancellationToken);
+            return items ?? Array.Empty<Industry>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<Industry>();
         }
     }
 
-    public async Task<ReferenceDto?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
+    public async Task<Industry?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _http.GetFromJsonAsync<ReferenceDto>($"api/industries/{id}", cancellationToken);
+            return await _http.GetFromJsonAsync<Industry>($"api/industries/{id}", cancellationToken);
         }
         catch
         {
@@ -38,13 +38,13 @@ public sealed class IndustriesApiClient : IIndustriesApiClient
         }
     }
 
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<Industry?> CreateAsync(Industry dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/industries", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<Industry>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -52,7 +52,7 @@ public sealed class IndustriesApiClient : IIndustriesApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, Industry dto, CancellationToken cancellationToken = default)
     {
         try
         {

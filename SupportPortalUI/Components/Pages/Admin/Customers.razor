@@ -1,5 +1,5 @@
 @page "/admin/customers"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.ICustomersApiClient Clients
 
 <PageTitle>Admin - Customers</PageTitle>
@@ -39,19 +39,19 @@ else
     </table>
 }
 
-<AdminEntityModal IsOpen="showCreate" IsOpenChanged="@(b => showCreate = b)" Title="Create Customer" Model="newModel" OnSaved="OnCreateSaved" />
-<AdminEntityModal IsOpen="showEdit" IsOpenChanged="@(b => showEdit = b)" Title="Edit Customer" Model="editModel" OnSaved="OnEditSaved" />
+<CustomerEntityModal IsOpen="showCreate" IsOpenChanged="@(b => showCreate = b)" Title="Create Customer" Model="newModel" OnSaved="OnCreateSaved" />
+<CustomerEntityModal IsOpen="showEdit" IsOpenChanged="@(b => showEdit = b)" Title="Edit Customer" Model="editModel" OnSaved="OnEditSaved" />
 <ConfirmModal IsOpen="showConfirm" IsOpenChanged="@(b => showConfirm = b)" Title="Delete Customer" Message="Are you sure you want to mark this customer as deleted?" OnConfirmed="OnDeleteConfirmed" />
 
 @code {
-    private IEnumerable<ReferenceDto> items = Array.Empty<ReferenceDto>();
+    private IEnumerable<Customer> items = Array.Empty<Customer>();
     private bool isLoading = true;
     private string? error;
 
     private bool showCreate;
     private bool showEdit;
-    private ReferenceDto newModel = new();
-    private ReferenceDto editModel = new();
+    private Customer newModel = new();
+    private Customer editModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,16 +73,16 @@ else
         finally { isLoading = false; }
     }
 
-    private void Edit(ReferenceDto dto)
+    private void Edit(Customer dto)
     {
-        editModel = new ReferenceDto { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
+        editModel = new Customer { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
         showEdit = true;
     }
 
-    private ReferenceDto? deletingModel;
+    private Customer? deletingModel;
     private bool showConfirm;
 
-    private void ConfirmDelete(ReferenceDto dto)
+    private void ConfirmDelete(Customer dto)
     {
         deletingModel = dto;
         showConfirm = true;
@@ -97,13 +97,13 @@ else
         deletingModel = null;
     }
 
-    private async Task OnCreateSaved(ReferenceDto dto)
+    private async Task OnCreateSaved(Customer dto)
     {
         var created = await Clients.CreateAsync(dto);
         if (created is not null) await LoadAsync();
     }
 
-    private async Task OnEditSaved(ReferenceDto dto)
+    private async Task OnEditSaved(Customer dto)
     {
         if (dto.Id == 0) return;
         var ok = await Clients.UpdateAsync(dto.Id, dto);

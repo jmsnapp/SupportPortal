@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,24 +13,24 @@ public sealed class IntegrationsApiClient : IIntegrationsApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<IntegrationDto>> GetActiveAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Integration>> GetActiveAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<IntegrationDto>>("api/integrations/active", cancellationToken);
-            return items ?? Array.Empty<IntegrationDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<Integration>>("api/integrations/active", cancellationToken);
+            return items ?? Array.Empty<Integration>();
         }
         catch
         {
-            return Array.Empty<IntegrationDto>();
+            return Array.Empty<Integration>();
         }
     }
 
-    public async Task<IntegrationDto?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
+    public async Task<Integration?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _http.GetFromJsonAsync<IntegrationDto>($"api/integrations/{id}", cancellationToken);
+            return await _http.GetFromJsonAsync<Integration>($"api/integrations/{id}", cancellationToken);
         }
         catch
         {

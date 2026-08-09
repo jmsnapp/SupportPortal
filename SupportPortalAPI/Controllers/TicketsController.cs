@@ -12,10 +12,10 @@ namespace SupportPortalAPI.Controllers
         private readonly IGenericRepository<IntegrationEntity> _integrationRepo;
         private readonly IGenericRepository<EscalationEntity> _escalationRepo;
         private readonly IGenericRepository<SeverityEntity> _severityRepo;
-        private readonly IGenericRepository<IndustryEntity> _industryRepo;
+        private readonly IGenericRepository<IndustryEntity> _industry_repo;
         private readonly IGenericRepository<IntegrationTypeEntity> _integrationTypeRepo;
-        private readonly IGenericRepository<IntegrationStatusEntity> _integrationStatusRepo;
-        private readonly IGenericRepository<SupportStatusEntity> _supportStatusRepo;
+        private readonly IGenericRepository<IntegrationStatusEntity> _integrationStatus_repo;
+        private readonly IGenericRepository<SupportStatusEntity> _supportStatus_repo;
         private readonly ITicketNoteRepository _ticketNoteRepo;
 
         public TicketsController(
@@ -36,32 +36,31 @@ namespace SupportPortalAPI.Controllers
             _integrationRepo = integrationRepo;
             _escalationRepo = escalationRepo;
             _severityRepo = severityRepo;
-            _industryRepo = industryRepo;
+            _industry_repo = industryRepo;
             _integrationTypeRepo = integrationTypeRepo;
-            _integrationTypeRepo = integrationTypeRepo; 
-            _integrationStatusRepo = integrationStatusRepo;
-            _supportStatusRepo = supportStatusRepo;
+            _integrationStatus_repo = integrationStatusRepo;
+            _supportStatus_repo = supportStatusRepo;
             _ticketNoteRepo = ticketNoteRepo;
         }
 
         // The constructor code above intentionally wires the many repositories required
         // by Mapper.MapTicketEntity2Ticket. Implement the mapping below.
 
-        protected override Task<Ticket> MapEntityToModelAsync(TicketEntity entity)
+        protected override async Task<Ticket> MapEntityToModelAsync(TicketEntity entity)
         {
-            var model = _mapper.MapTicketEntity2Ticket(entity,
+            var model = await _mapper.MapTicketEntity2TicketAsync(entity,
                                                       _customerRepo,
                                                       _integrationRepo,
                                                       _escalationRepo,
                                                       _severityRepo,
-                                                      _industryRepo,
+                                                      _industry_repo,
                                                       _integrationTypeRepo,
-                                                      _integrationStatusRepo,
-                                                      _supportStatusRepo,
+                                                      _integrationStatus_repo,
+                                                      _supportStatus_repo,
                                                       _ticketNoteRepo);
-            return Task.FromResult(model);
+            return model;
         }
 
-        // NOTE: there are duplicate assignments in the ctor for integration repo fields; ensure the injected parameter names match actual DI registrations.
+        // NOTE: the ctor had duplicate assignments in the original; ensure injected parameter names match DI registrations.
     }
 }

@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 using SupportPortalDomain;
 using SupportPortalDomain.Models;
@@ -29,10 +28,10 @@ namespace SupportPortalAPI.Controllers
             _industryRepo = industryRepo;
         }
 
-        protected override Task<Integration> MapEntityToModelAsync(IntegrationEntity entity)
+        protected override async Task<Integration> MapEntityToModelAsync(IntegrationEntity entity)
         {
-            var model = _mapper.MapIntegrationEntity2Integration(entity, _integrationTypeRepo, _integrationStatusRepo, _customerRepo, _industryRepo);
-            return Task.FromResult(model);
+            var model = await _mapper.MapIntegrationEntity2IntegrationAsync(entity, _integrationTypeRepo, _integrationStatusRepo, _customerRepo, _industryRepo);
+            return model;
         }
     }
 }

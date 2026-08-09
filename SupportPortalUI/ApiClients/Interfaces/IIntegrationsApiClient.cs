@@ -1,9 +1,9 @@
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients.Interfaces;
 
 public interface IIntegrationsApiClient
 {
-    Task<IEnumerable<IntegrationDto>> GetActiveAsync(CancellationToken cancellationToken = default);
-    Task<IntegrationDto?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Integration>> GetActiveAsync(CancellationToken cancellationToken = default);
+    Task<Integration?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
 }

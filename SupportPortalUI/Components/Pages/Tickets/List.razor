@@ -1,5 +1,5 @@
 @page "/tickets"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.ITicketsApiClient TicketsClient
 
 <PageTitle>Tickets</PageTitle>
@@ -17,15 +17,15 @@ else if (!string.IsNullOrEmpty(error))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Id</th><th>Name</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
+        <thead><tr><th>Id</th><th>Description</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
         <tbody>
             @foreach (var t in tickets)
             {
                 <tr>
                     <td>@t.Id</td>
-                    <td><NavLink class="nav-link p-0" href="@($"/tickets/{t.Id}")">@t.Name</NavLink></td>
-                    <td>@t.Severity</td>
-                    <td>@t.Status</td>
+                    <td><NavLink class="nav-link p-0" href="@($"/tickets/{t.Id}")">@t.Description</NavLink></td>
+                    <td>@t.Severity.Description</td>
+                    <td>@t.Status.Description</td>
                     <td>@t.AssignedTo</td>
                     <td>@t.CreatedDate.ToString("g")</td>
                 </tr>
@@ -35,7 +35,7 @@ else
 }
 
 @code {
-    private IEnumerable<TicketDto> tickets = Array.Empty<TicketDto>();
+    private IEnumerable<Ticket> tickets = Array.Empty<Ticket>();
     private bool isLoading = true;
     private string? error;
 

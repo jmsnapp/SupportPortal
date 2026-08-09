@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
+using Newtonsoft.Json;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -11,43 +12,58 @@ public sealed class TicketsApiClient : ITicketsApiClient
     public TicketsApiClient(HttpClient http)
     {
         _http = http;
+
     }
 
-    public async Task<IEnumerable<TicketDto>> GetActiveAsync(int take = 10, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Ticket>> GetActiveAsync(int take = 10, CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<TicketDto>>("api/tickets/active", cancellationToken);
-            return items?.Take(take) ?? Array.Empty<TicketDto>();
+            string strReturn = await _http.GetStringAsync("api/projects/active", cancellationToken);
+            List<Ticket>? items = JsonConvert.DeserializeObject<List<Ticket>>(strReturn);
+            return items?.Take(take) ?? Array.Empty<Ticket>();
+
         }
+
         catch
         {
-            return Array.Empty<TicketDto>();
+            return Array.Empty<Ticket>();
+
         }
+
     }
 
-    public async Task<TicketDto?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
+    public async Task<Ticket?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _http.GetFromJsonAsync<TicketDto>($"api/tickets/{id}", cancellationToken);
+            return await _http.GetFromJsonAsync<Ticket>($"api/tickets/{id}", cancellationToken);
+
         }
+
         catch
         {
             return null;
+
         }
+
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, TicketDto ticket, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, Ticket ticket, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PutAsJsonAsync($"api/tickets/{id}", ticket, cancellationToken);
             return resp.IsSuccessStatusCode;
+
         }
+
         catch
         {
             return false;
+
         }
+
     }
+
 }

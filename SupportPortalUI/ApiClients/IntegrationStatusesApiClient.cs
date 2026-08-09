@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,26 +13,26 @@ public sealed class IntegrationStatusesApiClient : IIntegrationStatusesApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<IntegrationStatus>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/integrationstatuses/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<IntegrationStatus>>("api/integrationstatuses/getall", cancellationToken);
+            return items ?? Array.Empty<IntegrationStatus>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<IntegrationStatus>();
         }
     }
 
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<IntegrationStatus?> CreateAsync(IntegrationStatus dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/integrationstatuses", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<IntegrationStatus>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -40,7 +40,7 @@ public sealed class IntegrationStatusesApiClient : IIntegrationStatusesApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, IntegrationStatus dto, CancellationToken cancellationToken = default)
     {
         try
         {

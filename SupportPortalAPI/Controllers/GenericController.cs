@@ -114,8 +114,13 @@ namespace SupportPortalAPI.Controllers
 
         protected virtual async Task<IEnumerable<TModel>> MapEntitiesToModelsAsync(IEnumerable<TEntity> entities, CancellationToken ct = default)
         {
-            var tasks = entities.Select(e => MapEntityToModelAsync(e));
-            var results = await Task.WhenAll(tasks);
+            var results = new List<TModel>();
+            foreach (var e in entities)
+            {
+                results.Add(await MapEntityToModelAsync(e));
+
+            }
+
             return results;
 
         }

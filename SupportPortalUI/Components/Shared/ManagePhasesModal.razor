@@ -1,4 +1,4 @@
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IPhasesApiClient PhasesClient
 @inject SupportPortalUI.ApiClients.Interfaces.ILinkProjectPhasesApiClient LinkPhasesClient
 
@@ -59,7 +59,7 @@
     [Parameter]
     public Int64 ProjectId { get; set; }
 
-    private IEnumerable<ReferenceDto> allPhases = Array.Empty<ReferenceDto>();
+    private IEnumerable<Phase> allPhases = Array.Empty<Phase>();
     private List<LinkedPhaseView> linkedPhases = new();
     private Int64? selectedPhaseId;
     private bool isLoading;
@@ -72,19 +72,20 @@
     private async Task LoadAsync()
     {
         isLoading = true;
-        allPhases = await PhasesClient.GetAllAsync();
+        allPhases = await PhasesClient.GetAllActiveAsync();
         var linked = await LinkPhasesClient.GetByProjectIdAsync(ProjectId);
-        linkedPhases = linked.Select(lp => new LinkedPhaseView { Id = lp.Id, PhaseId = lp.PhaseId, PhaseName = allPhases.FirstOrDefault(p => p.Id == lp.PhaseId)?.Name }).ToList();
+        linkedPhases = linked.Select(lp => new LinkedPhaseView { Id = lp.Id, PhaseId = lp.Phase.Id, PhaseName = allPhases.FirstOrDefault(p => p.Id == lp.Phase.Id)?.Name }).ToList();
         isLoading = false;
     }
 
     private async Task AddPhaseAsync()
     {
         if (selectedPhaseId is null) return;
-        var created = await LinkPhasesClient.CreateAsync(new LinkProjectPhaseDto { ProjectId = ProjectId, PhaseId = selectedPhaseId.Value });
+        Phase newPhase = allPhases.FirstOrDefault(p => p.Id == selectedPhaseId.Value);
+        var created = await LinkPhasesClient.CreateAsync(new ProjectPhase { ProjectId = ProjectId, Phase = newPhase });
         if (created is not null)
         {
-            linkedPhases.Add(new LinkedPhaseView { Id = created.Id, PhaseId = created.PhaseId, PhaseName = allPhases.FirstOrDefault(p => p.Id == created.PhaseId)?.Name });
+            linkedPhases.Add(new LinkedPhaseView { Id = created.Id, PhaseId = created.Phase.Id, PhaseName = allPhases.FirstOrDefault(p => p.Id == created.Phase.Id)?.Name });
         }
     }
 

@@ -1,5 +1,5 @@
-@page "/integrations/{Id:int}"
-@using SupportPortalUI.Models
+@page "/integrations/{Id:long}"
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IIntegrationsApiClient IntegrationsClient
 
 <PageTitle>Integration Details</PageTitle>
@@ -14,12 +14,12 @@ else if (!string.IsNullOrEmpty(error))
 }
 else if (integration is not null)
 {
-    <h3>@integration.Name</h3>
+    <h3>@integration.Description</h3>
     <dl class="row">
         <dt class="col-sm-3">Type</dt>
-        <dd class="col-sm-9">@integration.IntegrationType</dd>
+        <dd class="col-sm-9">@integration.Type.Description</dd>
         <dt class="col-sm-3">Status</dt>
-        <dd class="col-sm-9">@integration.CurrentStatus</dd>
+        <dd class="col-sm-9">@integration.CurrentStatus.Description</dd>
         <dt class="col-sm-3">Last Successful Sync</dt>
         <dd class="col-sm-9">@(integration.LastSuccessfulSync?.ToString("g") ?? "-")</dd>
         <dt class="col-sm-3">Retry Count</dt>
@@ -35,7 +35,7 @@ else if (integration is not null)
     [Parameter]
     public int Id { get; set; }
 
-    private IntegrationDto? integration;
+    private Integration? integration;
     private bool isLoading = true;
     private string? error;
 

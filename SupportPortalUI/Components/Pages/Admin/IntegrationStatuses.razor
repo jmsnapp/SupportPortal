@@ -1,5 +1,5 @@
 @page "/admin/integration-statuses"
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IIntegrationStatusesApiClient Clients
 
 <PageTitle>Admin - Integration Statuses</PageTitle>
@@ -44,14 +44,14 @@ else
 <ConfirmModal IsOpen="showConfirm" IsOpenChanged="@(b => showConfirm = b)" Title="Delete Integration Status" Message="Are you sure you want to mark this integration status as deleted?" OnConfirmed="OnDeleteConfirmed" />
 
 @code {
-    private IEnumerable<ReferenceDto> items = Array.Empty<ReferenceDto>();
+    private IEnumerable<IntegrationStatus> items = Array.Empty<IntegrationStatus>();
     private bool isLoading = true;
     private string? error;
 
     private bool showCreate;
     private bool showEdit;
-    private ReferenceDto newModel = new();
-    private ReferenceDto editModel = new();
+    private IntegrationStatus newModel = new();
+    private IntegrationStatus editModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,16 +73,16 @@ else
         finally { isLoading = false; }
     }
 
-    private void Edit(ReferenceDto dto)
+    private void Edit(IntegrationStatus dto)
     {
-        editModel = new ReferenceDto { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
+        editModel = new IntegrationStatus { Id = dto.Id, Name = dto.Name, Deleted = dto.Deleted };
         showEdit = true;
     }
 
-    private ReferenceDto? deletingModel;
+    private IntegrationStatus? deletingModel;
     private bool showConfirm;
 
-    private void ConfirmDelete(ReferenceDto dto)
+    private void ConfirmDelete(IntegrationStatus dto)
     {
         deletingModel = dto;
         showConfirm = true;
@@ -108,16 +108,34 @@ else
         deletingModel = null;
     }
 
-    private async Task OnCreateSaved(ReferenceDto dto)
+    private async Task OnCreateSaved(PortalObject dto)
     {
-        var created = await Clients.CreateAsync(dto);
+        IntegrationStatus status = new IntegrationStatus
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var created = await Clients.CreateAsync(status);
         if (created is not null) await LoadAsync();
+
     }
 
-    private async Task OnEditSaved(ReferenceDto dto)
+    private async Task OnEditSaved(PortalObject dto)
     {
         if (dto.Id == 0) return;
-        var ok = await Clients.UpdateAsync(dto.Id, dto);
+
+        IntegrationStatus status = new IntegrationStatus
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            Deleted = dto.Deleted
+        };
+
+        var ok = await Clients.UpdateAsync(dto.Id, status);
         if (ok) await LoadAsync();
     }
 }

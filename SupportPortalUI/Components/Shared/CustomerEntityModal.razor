@@ -36,10 +36,10 @@
     public string Title { get; set; } = "Entity";
 
     [Parameter]
-    public PortalObject Model { get; set; } = new();
+    public Customer Model { get; set; } = new();
 
     [Parameter]
-    public EventCallback<PortalObject> OnSaved { get; set; }
+    public EventCallback<Customer> OnSaved { get; set; }
 
     private async Task SaveAsync()
     {

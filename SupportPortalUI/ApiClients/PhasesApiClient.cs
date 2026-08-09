@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using SupportPortalUI.ApiClients.Interfaces;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalUI.ApiClients;
 
@@ -13,37 +13,50 @@ public sealed class PhasesApiClient : IPhasesApiClient
         _http = http;
     }
 
-    public async Task<IEnumerable<ReferenceDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Phase>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            var items = await _http.GetFromJsonAsync<IEnumerable<ReferenceDto>>("api/phases/getall", cancellationToken);
-            return items ?? Array.Empty<ReferenceDto>();
+            var items = await _http.GetFromJsonAsync<IEnumerable<Phase>>("api/phases/getall", cancellationToken);
+            return items ?? Array.Empty<Phase>();
         }
         catch
         {
-            return Array.Empty<ReferenceDto>();
+            return Array.Empty<Phase>();
         }
     }
 
-    public async Task<ReferenceDto?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Phase>> GetAllActiveAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            return await _http.GetFromJsonAsync<ReferenceDto>($"api/phases/{id}", cancellationToken);
+            var items = await _http.GetFromJsonAsync<IEnumerable<Phase>>("api/phases/active", cancellationToken);
+            return items ?? Array.Empty<Phase>();
+        }
+        catch
+        {
+            return Array.Empty<Phase>();
+        }
+    }
+
+    public async Task<Phase?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<Phase>($"api/phases/{id}", cancellationToken);
         }
         catch
         {
             return null;
         }
     }
-    public async Task<ReferenceDto?> CreateAsync(ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<Phase?> CreateAsync(Phase dto, CancellationToken cancellationToken = default)
     {
         try
         {
             var resp = await _http.PostAsJsonAsync("api/phases", dto, cancellationToken);
             if (!resp.IsSuccessStatusCode) return null;
-            return await resp.Content.ReadFromJsonAsync<ReferenceDto>(cancellationToken: cancellationToken);
+            return await resp.Content.ReadFromJsonAsync<Phase>(cancellationToken: cancellationToken);
         }
         catch
         {
@@ -51,7 +64,7 @@ public sealed class PhasesApiClient : IPhasesApiClient
         }
     }
 
-    public async Task<bool> UpdateAsync(Int64 id, ReferenceDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> UpdateAsync(Int64 id, Phase dto, CancellationToken cancellationToken = default)
     {
         try
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
@@ -9,13 +10,18 @@ namespace SupportPortalDomain
 {
     public class DBMapper
     {
+        // Synchronous wrappers remain for backward compatibility (they block),
+        // but async variants below are used by controllers to avoid blocking on async repo calls.
+
         public Customer MapCustomerEntity2Customer(CustomerEntity entity, IGenericRepository<IndustryEntity> industryRepository)
+            => MapCustomerEntity2CustomerAsync(entity, industryRepository).GetAwaiter().GetResult();
+
+        public async Task<Customer> MapCustomerEntity2CustomerAsync(CustomerEntity entity, IGenericRepository<IndustryEntity> industryRepository)
         {
-            // Implementation for mapping customer entity to a Customer
-            Customer customer = new Customer();
+            var customer = new Customer();
             MapPortalEntity2Object(entity, customer);
 
-            IndustryEntity industryEntity = industryRepository.GetByIdAsync(entity.IndustryId).Result;
+            var industryEntity = await industryRepository.GetByIdAsync(entity.IndustryId).ConfigureAwait(false);
             MapPortalEntity2Object(industryEntity, customer.Industry);
 
             customer.PrimaryContact = entity.PrimaryContactName;
@@ -28,21 +34,27 @@ namespace SupportPortalDomain
 
         }
 
-        public Integration MapIntegrationEntity2Integration(IntegrationEntity entity, 
-                                                            IGenericRepository<IntegrationTypeEntity> integrationTypeRepository, 
-                                                            IGenericRepository<IntegrationStatusEntity> integrationStatusRepository, 
+        public Integration MapIntegrationEntity2Integration(IntegrationEntity entity,
+                                                            IGenericRepository<IntegrationTypeEntity> integrationTypeRepository,
+                                                            IGenericRepository<IntegrationStatusEntity> integrationStatusRepository,
                                                             IGenericRepository<CustomerEntity> customerRepository,
                                                             IGenericRepository<IndustryEntity> industryRepository)
+            => MapIntegrationEntity2IntegrationAsync(entity, integrationTypeRepository, integrationStatusRepository, customerRepository, industryRepository).GetAwaiter().GetResult();
+
+        public async Task<Integration> MapIntegrationEntity2IntegrationAsync(IntegrationEntity entity,
+                                                                             IGenericRepository<IntegrationTypeEntity> integrationTypeRepository,
+                                                                             IGenericRepository<IntegrationStatusEntity> integrationStatusRepository,
+                                                                             IGenericRepository<CustomerEntity> customerRepository,
+                                                                             IGenericRepository<IndustryEntity> industryRepository)
         {
-            // Implementation for mapping integration entity to an Integration
-            Integration integration = new Integration();
+            var integration = new Integration();
             MapPortalEntity2Object(entity, integration);
 
-            IntegrationTypeEntity typeEntity = integrationTypeRepository.GetByIdAsync(entity.IntegrationTypeId).Result;
-            IntegrationStatusEntity statusEntity = integrationStatusRepository.GetByIdAsync(entity.CurrentStatusId).Result;
-            CustomerEntity customerEntity = customerRepository.GetByIdAsync(entity.CustomerId).Result;
+            var typeEntity = await integrationTypeRepository.GetByIdAsync(entity.IntegrationTypeId).ConfigureAwait(false);
+            var statusEntity = await integrationStatusRepository.GetByIdAsync(entity.CurrentStatusId).ConfigureAwait(false);
+            var customerEntity = await customerRepository.GetByIdAsync(entity.CustomerId).ConfigureAwait(false);
 
-            integration.Customer = MapCustomerEntity2Customer(customerEntity, industryRepository);
+            integration.Customer = await MapCustomerEntity2CustomerAsync(customerEntity, industryRepository).ConfigureAwait(false);
             MapPortalEntity2Object(typeEntity, integration.Type);
             MapPortalEntity2Object(statusEntity, integration.CurrentStatus);
 
@@ -54,13 +66,17 @@ namespace SupportPortalDomain
 
         }
 
-        public ProjectPhase MapLinkProjectPhaseEntity2ProjectPhase(LinkProjectPhaseEntity entity, 
+        public ProjectPhase MapLinkProjectPhaseEntity2ProjectPhase(LinkProjectPhaseEntity entity,
                                                                    IGenericRepository<PhaseEntity> phaseRepository)
+            => MapLinkProjectPhaseEntity2ProjectPhaseAsync(entity, phaseRepository).GetAwaiter().GetResult();
+
+        public async Task<ProjectPhase> MapLinkProjectPhaseEntity2ProjectPhaseAsync(LinkProjectPhaseEntity entity,
+                                                                                     IGenericRepository<PhaseEntity> phaseRepository)
         {
-            ProjectPhase projectPhase = new ProjectPhase();
+            var projectPhase = new ProjectPhase();
             MapPortalEntity2Object(entity, projectPhase);
 
-            PhaseEntity phaseEntity = phaseRepository.GetByIdAsync(entity.PhaseId).Result;
+            var phaseEntity = await phaseRepository.GetByIdAsync(entity.PhaseId).ConfigureAwait(false);
             MapPortalEntity2Object(phaseEntity, projectPhase.Phase);
 
             projectPhase.ProjectId = entity.ProjectId;
@@ -73,26 +89,34 @@ namespace SupportPortalDomain
 
         public Project MapProjectEntity2Project(ProjectEntity entity,
                                                 ILinkProjectPhaseRepository projectPhaseRepository,
-                                                IGenericRepository<PhaseEntity> phaseRepository, 
+                                                IGenericRepository<PhaseEntity> phaseRepository,
                                                 IProjectNoteRepository projectNoteRepository)
+            => MapProjectEntity2ProjectAsync(entity, projectPhaseRepository, phaseRepository, projectNoteRepository).GetAwaiter().GetResult();
+
+        public async Task<Project> MapProjectEntity2ProjectAsync(ProjectEntity entity,
+                                                                 ILinkProjectPhaseRepository projectPhaseRepository,
+                                                                 IGenericRepository<PhaseEntity> phaseRepository,
+                                                                 IProjectNoteRepository projectNoteRepository)
         {
-            Project project = new Project();
+            var project = new Project();
             MapPortalEntity2Object(entity, project);
 
-            PhaseEntity currentPhaseEntity = phaseRepository.GetByIdAsync(entity.CurrentPhase).Result;
+            var currentPhaseEntity = await phaseRepository.GetByIdAsync(entity.CurrentPhase).ConfigureAwait(false);
+            var lstProjectPhaseEntities = await projectPhaseRepository.GetByProjectIdAsync(entity.Id).ConfigureAwait(false);
+            var lstProjectNoteEntities = await projectNoteRepository.GetByProjectIdAsync(entity.Id).ConfigureAwait(false);
+
             MapPortalEntity2Object(currentPhaseEntity, project.CurrentPhase);
 
-            List<LinkProjectPhaseEntity> lstProjectPhaseEntities = projectPhaseRepository.GetByProjectIdAsync(entity.Id).Result.ToList();
             foreach (var linkProjectPhaseEntity in lstProjectPhaseEntities)
             {
-                ProjectPhase projectPhase = MapLinkProjectPhaseEntity2ProjectPhase(linkProjectPhaseEntity, phaseRepository);
+                var projectPhase = await MapLinkProjectPhaseEntity2ProjectPhaseAsync(linkProjectPhaseEntity, phaseRepository).ConfigureAwait(false);
                 project.Phases.Add(projectPhase);
+
             }
 
-            List<ProjectNoteEntity> lstProjectNoteEntities = projectNoteRepository.GetByProjectIdAsync(entity.Id).Result.ToList();
             foreach (var projectNoteEntity in lstProjectNoteEntities)
             {
-                ProjectNote projectNote = MapProjectNoteEntity2ProjectNote(projectNoteEntity);
+                var projectNote = MapProjectNoteEntity2ProjectNote(projectNoteEntity);
                 project.Notes.Add(projectNote);
 
             }
@@ -114,39 +138,58 @@ namespace SupportPortalDomain
                                              IGenericRepository<IntegrationStatusEntity> integrationStatusRepository,
                                              IGenericRepository<SupportStatusEntity> supportStatusRepository,
                                              ITicketNoteRepository ticketNoteRepository)
+            => MapTicketEntity2TicketAsync(entity,
+                                           customerRepository,
+                                           integrationRepository,
+                                           escalationRepository,
+                                           severityRepository,
+                                           industryRepository,
+                                           integrationTypeRepository,
+                                           integrationStatusRepository,
+                                           supportStatusRepository,
+                                           ticketNoteRepository).GetAwaiter().GetResult();
+
+        public async Task<Ticket> MapTicketEntity2TicketAsync(TicketEntity entity,
+            IGenericRepository<CustomerEntity> customerRepository,
+            IGenericRepository<IntegrationEntity> integrationRepository,
+            IGenericRepository<EscalationEntity> escalationRepository,
+            IGenericRepository<SeverityEntity> severityRepository,
+            IGenericRepository<IndustryEntity> industryRepository,
+            IGenericRepository<IntegrationTypeEntity> integrationTypeRepository,
+            IGenericRepository<IntegrationStatusEntity> integrationStatusRepository,
+            IGenericRepository<SupportStatusEntity> supportStatusRepository,
+            ITicketNoteRepository ticketNoteRepository)
         {
-            Ticket ticket = new Ticket();
+            var ticket = new Ticket();
             MapPortalEntity2Object(entity, ticket);
 
-            CustomerEntity customerEntity = customerRepository.GetByIdAsync(entity.CustomerId).Result;
-            ticket.Customer = MapCustomerEntity2Customer(customerEntity, industryRepository);
+            var customerEntity = await customerRepository.GetByIdAsync(entity.CustomerId).ConfigureAwait(false);
+            var integrationEntity = await integrationRepository.GetByIdAsync(entity.IntegrationId).ConfigureAwait(false);
+            var severityEntity = await severityRepository.GetByIdAsync(entity.SeverityId).ConfigureAwait(false);
+            var statusEntity = await supportStatusRepository.GetByIdAsync(entity.StatusId).ConfigureAwait(false);
+            var lstTicketNoteEntities = await ticketNoteRepository.GetByTicketIdAsync(entity.Id).ConfigureAwait(false);
 
-            IntegrationEntity integrationEntity = integrationRepository.GetByIdAsync(entity.IntegrationId).Result;
-            ticket.Integration = MapIntegrationEntity2Integration(integrationEntity,
-                                                                  integrationTypeRepository,
-                                                                  integrationStatusRepository,
-                                                                  customerRepository,
-                                                                  industryRepository);
+            ticket.Customer = await MapCustomerEntity2CustomerAsync(customerEntity, industryRepository).ConfigureAwait(false);
 
-            SeverityEntity severityEntity = severityRepository.GetByIdAsync(entity.SeverityId).Result;
+            ticket.Integration = await MapIntegrationEntity2IntegrationAsync(integrationEntity,
+                                                                             integrationTypeRepository,
+                                                                             integrationStatusRepository,
+                                                                             customerRepository,
+                                                                             industryRepository).ConfigureAwait(false);
+
             MapPortalEntity2Object(severityEntity, ticket.Severity);
-
-            SupportStatusEntity statusEntity = supportStatusRepository.GetByIdAsync(entity.StatusId).Result;
             MapPortalEntity2Object(statusEntity, ticket.Status);
 
             if (entity.EscalationId.HasValue)
             {
-                EscalationEntity escalationEntity = escalationRepository.GetByIdAsync(entity.EscalationId.Value).Result;
+                var escalationEntity = await escalationRepository.GetByIdAsync(entity.EscalationId.Value).ConfigureAwait(false);
                 ticket.Escalation = MapEscalationEntity2Escalation(escalationEntity);
-
             }
 
-            List<TicketNoteEntity> lstTicketNoteEntities = ticketNoteRepository.GetByTicketIdAsync(entity.Id).Result.ToList();
             foreach (var ticketNoteEntity in lstTicketNoteEntities)
             {
-                TicketNote ticketNote = MapTicketNoteEntity2TicketNote(ticketNoteEntity);
+                var ticketNote = MapTicketNoteEntity2TicketNote(ticketNoteEntity);
                 ticket.Notes.Add(ticketNote);
-
             }
 
             ticket.Reproduce = entity.Reproduce;
@@ -160,10 +203,8 @@ namespace SupportPortalDomain
 
         }
 
-
         public static CustomerEntity MapCustomer2CustomerEntity(Customer customer)
         {
-            // Implementation for mapping Customer to a customer entity
             CustomerEntity entity = new CustomerEntity();
             MapPortalObject2Entity(customer, entity);
 
@@ -178,9 +219,9 @@ namespace SupportPortalDomain
 
         }
 
-        public static Escalation MapEscalationEntity2Escalation(EscalationEntity entity) 
-        { 
-            Escalation objReturn = new Escalation();
+        public static Escalation MapEscalationEntity2Escalation(EscalationEntity entity)
+        {
+            var objReturn = new Escalation();
             MapPortalEntity2Object(entity, objReturn);
 
             objReturn.ProblemSummary = entity.ProblemSummary;
@@ -194,7 +235,7 @@ namespace SupportPortalDomain
 
         public static EscalationEntity MapEscalation2EscalationEntity(Escalation obj)
         {
-            EscalationEntity entityReturn = new EscalationEntity();
+            var entityReturn = new EscalationEntity();
             MapPortalObject2Entity(obj, entityReturn);
 
             entityReturn.ProblemSummary = obj.ProblemSummary;
@@ -208,8 +249,7 @@ namespace SupportPortalDomain
 
         public static IntegrationEntity MapIntegration2IntegrationEntity(Integration obj)
         {
-            // Implementation for mapping Integration to an integration entity
-            IntegrationEntity entity = new IntegrationEntity();
+            var entity = new IntegrationEntity();
             MapPortalObject2Entity(obj, entity);
 
             entity.IntegrationTypeId = obj.Type.Id;
@@ -226,8 +266,7 @@ namespace SupportPortalDomain
 
         public static LinkProjectPhaseEntity MapProjectPhase2LinkProjectPhaseEntity(ProjectPhase obj)
         {
-            // Implementation for mapping ProjectPhase to a link project phase entity
-            LinkProjectPhaseEntity entity = new LinkProjectPhaseEntity();
+            var entity = new LinkProjectPhaseEntity();
             MapPortalObject2Entity(obj, entity);
 
             entity.ProjectId = obj.ProjectId;
@@ -241,8 +280,7 @@ namespace SupportPortalDomain
 
         public static ProjectEntity MapProject2ProjectEntity(Project obj)
         {
-            // Implementation for mapping Project to a project entity
-            ProjectEntity entity = new ProjectEntity();
+            var entity = new ProjectEntity();
             MapPortalObject2Entity(obj, entity);
 
             entity.CurrentPhase = obj.CurrentPhase.Id;
@@ -255,7 +293,7 @@ namespace SupportPortalDomain
 
         public static ProjectNote MapProjectNoteEntity2ProjectNote(ProjectNoteEntity entity)
         {
-            ProjectNote projectNote = new ProjectNote();
+            var projectNote = new ProjectNote();
             MapPortalEntity2Object(entity, projectNote);
 
             projectNote.ProjectId = entity.ProjectId;
@@ -267,7 +305,7 @@ namespace SupportPortalDomain
 
         public static ProjectNoteEntity MapProjectNote2ProjectNoteEntity(ProjectNote obj)
         {
-            ProjectNoteEntity entity = new ProjectNoteEntity();
+            var entity = new ProjectNoteEntity();
             MapPortalObject2Entity(obj, entity);
 
             entity.ProjectId = obj.ProjectId;
@@ -279,13 +317,12 @@ namespace SupportPortalDomain
 
         public static TicketEntity MapTicket2TicketEntity(Ticket obj)
         {
-            // Implementation for mapping Ticket to a ticket entity
-            TicketEntity entity = new TicketEntity();
+            var entity = new TicketEntity();
             MapPortalObject2Entity(obj, entity);
 
             entity.CustomerId = obj.Customer.Id;
             entity.IntegrationId = obj.Integration.Id;
-            entity.SeverityId = obj.Severity.Id;          
+            entity.SeverityId = obj.Severity.Id;
             entity.StatusId = obj.Status.Id;
             entity.Reproduce = obj.Reproduce;
             entity.ReportedBy = obj.ReportedBy;
@@ -293,12 +330,7 @@ namespace SupportPortalDomain
             entity.CreatedDate = obj.CreatedDate;
             entity.ResolutionDate = obj.ResolutionDate;
             entity.Resolution = obj.Resolution;
-
-            if (obj.Escalation != null)
-                entity.EscalationId = obj.Escalation?.Id;
-
-            else
-                entity.EscalationId = null;
+            entity.EscalationId = obj.Escalation?.Id;
 
             return entity;
 
@@ -306,7 +338,7 @@ namespace SupportPortalDomain
 
         public static TicketNote MapTicketNoteEntity2TicketNote(TicketNoteEntity entity)
         {
-            TicketNote ticketNote = new TicketNote();
+            var ticketNote = new TicketNote();
             MapPortalEntity2Object(entity, ticketNote);
 
             ticketNote.TicketId = entity.TicketId;
@@ -318,7 +350,7 @@ namespace SupportPortalDomain
 
         public static TicketNoteEntity MapTicketNote2TicketNoteEntity(TicketNote obj)
         {
-            TicketNoteEntity entity = new TicketNoteEntity();
+            var entity = new TicketNoteEntity();
             MapPortalObject2Entity(obj, entity);
 
             entity.TicketId = obj.TicketId;
@@ -328,9 +360,9 @@ namespace SupportPortalDomain
 
         }
 
+        // Portal entity/object mapping helpers
         public static void MapPortalEntity2Object(PortalEntity entity, PortalObject obj)
         {
-            // Implementation for mapping portal entity to a PortalObject
             obj.Id = entity.Id;
             obj.Name = entity.Name;
             obj.Description = entity.Description;
@@ -338,9 +370,8 @@ namespace SupportPortalDomain
 
         }
 
-        public static void MapPortalObject2Entity(PortalObject obj, PortalEntity entity)
+        private static void MapPortalObject2Entity(PortalObject obj, PortalEntity entity)
         {
-            // Implementation for mapping PortalObject to a portal entity
             entity.Id = obj.Id;
             entity.Name = obj.Name;
             entity.Description = obj.Description;

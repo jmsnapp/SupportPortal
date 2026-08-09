@@ -1,4 +1,4 @@
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IEscalationsApiClient EscalationsClient
 @inherits ComponentBase
 
@@ -40,7 +40,7 @@
     [Parameter]
     public EventCallback<Int64> OnCreated { get; set; }
 
-    private EscalationDto Model { get; set; } = new();
+    private Escalation Model { get; set; } = new();
     private bool isSaving;
 
     protected override void OnParametersSet()
@@ -48,7 +48,7 @@
         if (SourceTicketId is not null)
         {
             // Prefill name
-            Model = new EscalationDto { Name = $"Escalation for ticket {SourceTicketId}", ProblemSummary = string.Empty };
+            Model = new Escalation { Name = $"Escalation for ticket {SourceTicketId}", ProblemSummary = string.Empty };
         }
     }
 

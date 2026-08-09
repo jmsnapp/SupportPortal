@@ -1,6 +1,6 @@
 ﻿@page "/"
 
-@using SupportPortalUI.Models
+@using SupportPortalDomain.Models
 @inject SupportPortalUI.ApiClients.Interfaces.IEscalationsApiClient EscalationsClient
 @inject SupportPortalUI.ApiClients.Interfaces.ITicketsApiClient TicketsClient
 @inject SupportPortalUI.ApiClients.Interfaces.IProjectsApiClient ProjectsClient
@@ -22,15 +22,15 @@ else if (!string.IsNullOrEmpty(escalationsError))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Id</th><th>Name</th><th>Problem</th><th>Created</th></tr></thead>
+        <thead><tr><th>Id</th><th>Description</th><th>Problem</th><th>Recommended</th></tr></thead>
         <tbody>
             @foreach (var e in escalations)
             {
                 <tr class="@(string.IsNullOrWhiteSpace(e.CustomerImpact) ? string.Empty : "table-warning")">
                     <td>@e.Id</td>
-                    <td><a href="/escalations/@e.Id">@e.Name</a></td>
+                    <td><a href="/escalations/@e.Id">@e.Description</a></td>
                     <td>@(e.ProblemSummary?.Length > 80 ? e.ProblemSummary[..80] + "..." : e.ProblemSummary)</td>
-                    <td>@e.CreatedDate.ToString("g")</td>
+                    <td>@(e.RecommendedActions?.Length > 80 ? e.RecommendedActions[..80] + "..." : e.RecommendedActions)</td>
                 </tr>
             }
         </tbody>
@@ -49,15 +49,15 @@ else if (!string.IsNullOrEmpty(ticketsError))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Id</th><th>Name</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
+        <thead><tr><th>Id</th><th>Description</th><th>Severity</th><th>Status</th><th>Assigned</th><th>Created</th></tr></thead>
         <tbody>
             @foreach (var t in tickets)
             {
                 <tr>
                     <td>@t.Id</td>
-                    <td><a href="/tickets/@t.Id">@t.Name</a></td>
-                    <td>@t.Severity</td>
-                    <td>@t.Status</td>
+                    <td><a href="/tickets/@t.Id">@t.Description</a></td>
+                    <td>@t.Severity.Description</td>
+                    <td>@t.Status.Description</td>
                     <td>@t.AssignedTo</td>
                     <td>@t.CreatedDate.ToString("g")</td>
                 </tr>
@@ -78,15 +78,15 @@ else if (!string.IsNullOrEmpty(projectsError))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Id</th><th>Name</th><th>Phase</th><th>Target Go Live</th></tr></thead>
+        <thead><tr><th>Id</th><th>Description</th><th>Phase</th><th>Target Go Live</th></tr></thead>
         <tbody>
             @foreach (var p in projects)
             {
                 <tr>
                     <td>@p.Id</td>
-                    <td><a href="/projects/@p.Id">@p.Name</a></td>
-                    <td>@p.CurrentPhase</td>
-                    <td>@(p.TargetGoLiveDate?.ToString("d") ?? string.Empty)</td>
+                    <td><a href="/projects/@p.Id">@p.Description</a></td>
+                    <td>@p.CurrentPhase.Description</td>
+                    <td>@(p.TargetGoLive.ToString("d") ?? string.Empty)</td>
                 </tr>
             }
         </tbody>
@@ -105,14 +105,14 @@ else if (!string.IsNullOrEmpty(integrationsError))
 else
 {
     <table class="table table-sm">
-        <thead><tr><th>Name</th><th>Type</th><th>Status</th><th>Last Sync</th><th>Retries</th></tr></thead>
+        <thead><tr><th>Description</th><th>Type</th><th>Status</th><th>Last Sync</th><th>Retries</th></tr></thead>
         <tbody>
             @foreach (var i in integrations)
             {
-                <tr class="@(i.IsHealthy ? string.Empty : "table-danger")">
-                    <td><a href="/integrations/@i.Id">@i.Name</a></td>
-                    <td>@i.IntegrationType</td>
-                    <td>@i.CurrentStatus</td>
+                <tr class="@(i.CurrentStatus.Name == "OPERATIONAL" ? string.Empty : "table-danger")">
+                    <td><a href="/integrations/@i.Id">@i.Description</a></td>
+                    <td>@i.Type.Description</td>
+                    <td>@i.CurrentStatus.Description</td>
                     <td>@(i.LastSuccessfulSync?.ToString("g") ?? "-")</td>
                     <td>@i.RetryCount</td>
                 </tr>
@@ -122,10 +122,10 @@ else
 }
 
 @code {
-    private IEnumerable<EscalationDto> escalations = Array.Empty<EscalationDto>();
-    private IEnumerable<TicketDto> tickets = Array.Empty<TicketDto>();
-    private IEnumerable<ProjectDto> projects = Array.Empty<ProjectDto>();
-    private IEnumerable<IntegrationDto> integrations = Array.Empty<IntegrationDto>();
+    private IEnumerable<Escalation> escalations = Array.Empty<Escalation>();
+    private IEnumerable<Ticket> tickets = Array.Empty<Ticket>();
+    private IEnumerable<Project> projects = Array.Empty<Project>();
+    private IEnumerable<Integration> integrations = Array.Empty<Integration>();
 
     private bool escalationsLoading = true;
     private bool ticketsLoading = true;
@@ -144,15 +144,15 @@ else
 
     private async Task LoadAllAsync()
     {
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(900));
 
         // Fire tasks in parallel and capture failures individually
-        var escTask = LoadEscalationsAsync(cts.Token);
-        var ticketTask = LoadTicketsAsync(cts.Token);
-        var projTask = LoadProjectsAsync(cts.Token);
-        var intTask = LoadIntegrationsAsync(cts.Token);
+        await LoadEscalationsAsync(cts.Token);
+        await LoadTicketsAsync(cts.Token);
+        await LoadProjectsAsync(cts.Token);
+        await LoadIntegrationsAsync(cts.Token);
 
-        await Task.WhenAll(escTask, ticketTask, projTask, intTask);
+        // await Task.WhenAll(escTask, ticketTask, projTask, intTask);
     }
 
     private async Task LoadEscalationsAsync(CancellationToken ct)

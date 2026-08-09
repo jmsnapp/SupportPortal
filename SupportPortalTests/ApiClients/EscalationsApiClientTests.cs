@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SupportPortalUI.ApiClients;
-using SupportPortalUI.Models;
+using SupportPortalDomain.Models;
 
 namespace SupportPortalTests.ApiClients;
 
@@ -14,7 +14,7 @@ public class EscalationsApiClientTests
     [TestMethod]
     public async Task GetActiveAsync_ReturnsItems()
     {
-        var expected = new[] { new EscalationDto { Id = 1, Name = "E1" } };
+        var expected = new[] { new Escalation { Id = 1, Name = "E1" } };
         var handler = new FakeHandler(req => new HttpResponseMessage(HttpStatusCode.OK)
         {
             Content = JsonContent.Create(expected)
