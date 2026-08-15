@@ -50,7 +50,7 @@ For complex objects that have foreign keys, I use these basic procedures for the
 
 The Domain project is sparse, as this system is currently a very simple system. I have the domain models defined in there (and those are also very simple due to the straightforward requirements of the system).
 
-I also have the DBMapper class in the Domain project instead of the Infrastructure project. I did this because the DB Mapper takes the Infrastructure entities and maps them to Domain models.  If I decide to add another data source (like an API, for example), I can put that access and it's appropriate entities into the Infrastructure project, then just add an appropriate Mapper class to the Domain project.  That Infrastructure/Domain boundary remains defined across data sources, and layers above the domain (the SupportPortalAPI and eventually the Web UI) are not majorly affected by the new data source, other than their Models can now show data from that new source.
+I also have the DBMapper class in the Domain project instead of the Infrastructure project. I did this because the DB Mapper takes the Infrastructure entities and maps them to Domain models.  If I decide to add another data source (like an API, for example), I can put that access and it's appropriate entities into the Infrastructure project, then just add an appropriate Mapper class to the Domain project.  That Infrastructure/Domain boundary remains defined across data sources, and layers above the domain (the SupportPortalAPI and the Web UI) are not majorly affected by the new data source, other than their Models can now show data from that new source.
 
 # API
 
@@ -66,4 +66,4 @@ I have included a Unit Test project in this solution.  It is a .NET 10 MSTest pr
 
 # Future Work
 
-The next step for this project is to add User Authentication and Authorization.  I have not done this yet, as I wanted to get the basic system up and running first.  I plan to use OAuth2 for this, along with role-based security, and I will be adding new tables to the database to support this. This will also require some changes to the API and the UI to handle login and logout functionality, user maintenance, and user roles.
+The next step for this project is to add User Authentication and Authorization.  I have not done this yet, as I wanted to get the basic system up and running first.  I plan to use OAuth2 for this, along with role-based security, and I will be adding new tables to the database to support this. This will also require corresponding changes to the API and the UI to handle login and logout functionality, user maintenance, and user roles.
