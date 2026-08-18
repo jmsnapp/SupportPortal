@@ -167,11 +167,11 @@ public class IntegrationsControllerTests
         IntegrationsController controller = new IntegrationsController(repoMock.Object);
 
         var badResult = await controller.Update(1L, null as Integration);
-        Assert.IsInstanceOfType(badResult, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult.Result, typeof(BadRequestResult));
 
         Integration updated = new Integration { Id = 2L, Name = "X" };
         var mismatch = await controller.Update(1L, updated);
-        Assert.IsInstanceOfType(mismatch, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(mismatch.Result, typeof(BadRequestResult));
 
     }
 
@@ -188,12 +188,12 @@ public class IntegrationsControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(5L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
 
     }
 
     [TestMethod]
-    public async Task Update_ReturnsNoContent_OnSuccess()
+    public async Task Update_ReturnsSavedModel_OnSuccess()
     {
         IntegrationEntity existing = new IntegrationEntity { Id = 6L, Name = "Before" };
 
@@ -209,7 +209,9 @@ public class IntegrationsControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(6L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+
+        Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
         repoMock.Verify(r => r.Update(It.IsAny<IntegrationEntity>()), Times.Once);
         repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 

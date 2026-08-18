@@ -38,6 +38,8 @@ if (!app.Environment.IsDevelopment())
     });
 }
 
+app.UseHttpsRedirection();
+
 app.UseRouting();
 
 if (app.Environment.IsDevelopment())
@@ -45,7 +47,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
 //app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+// Exposed so the integration tests can boot the real pipeline via WebApplicationFactory.
+// Top-level statements generate an internal Program; this makes it addressable.
+public partial class Program { }

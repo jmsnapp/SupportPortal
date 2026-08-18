@@ -167,13 +167,13 @@ public class LinkProjectPhasesControllerTests
         LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as ProjectPhase);
-        Assert.IsInstanceOfType(badResult1, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
         var entity= new LinkProjectPhaseEntity { Id = 2L, Name = "X" };
         ProjectPhase updated = new ProjectPhase();
         DBMapper.MapPortalEntity2Object(entity, updated);
         var badResult2 = await controller.Update(1L, updated);
-        Assert.IsInstanceOfType(badResult2, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
     }
 
@@ -190,12 +190,12 @@ public class LinkProjectPhasesControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(5L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
 
     }
 
     [TestMethod]
-    public async Task Update_ReturnsNoContent_OnSuccess()
+    public async Task Update_ReturnsSavedModel_OnSuccess()
     {
         LinkProjectPhaseEntity existing = new LinkProjectPhaseEntity { Id = 6L, Name = "Before", PhaseId = 1L };
 
@@ -211,7 +211,9 @@ public class LinkProjectPhasesControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(6L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+
+        Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
         repoMock.Verify(r => r.Update(It.IsAny<LinkProjectPhaseEntity>()), Times.Once);
         repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 

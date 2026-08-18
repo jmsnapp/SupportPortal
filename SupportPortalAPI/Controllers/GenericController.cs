@@ -69,8 +69,13 @@ namespace SupportPortalAPI.Controllers
             => Collection(page, pageSize, includeDeleted: false, ct);
 
         // PUT api/[controller]/{id:long}
+        //
+        // Responds with the saved model rather than 204. The body carries the RowVersion the
+        // row now holds, so a caller can save again straight away; with 204 it would have to
+        // re-read first, and a caller that did not would replay the token it just superseded
+        // and be rejected as a stale write.
         [HttpPut("{id:long}")]
-        public virtual async Task<IActionResult> Update(Int64 id, [FromBody] TModel updated, CancellationToken ct = default)
+        public virtual async Task<ActionResult<TModel>> Update(Int64 id, [FromBody] TModel updated, CancellationToken ct = default)
         {
             if (updated == null || id != updated.Id) return BadRequest();
 
@@ -81,7 +86,9 @@ namespace SupportPortalAPI.Controllers
 
             _repo.Update(existing);
             await _repo.SaveChangesAsync(ct);
-            return NoContent();
+
+            // SaveChanges refreshes the store-generated token on the tracked entity.
+            return MapEntityToModel(existing);
 
         }
 
@@ -108,11 +115,19 @@ namespace SupportPortalAPI.Controllers
         }
 
         // DELETE api/[controller]/{id:long}
+        //
+        // Optionally guarded by an If-Match precondition carrying the RowVersion the caller
+        // believes the row is at. Delete and Restore have no body, so the header is the only
+        // place that expectation can travel. Omit it and the write is unguarded, matching
+        // Update's behaviour when a model arrives without a token.
         [HttpDelete("{id:long}")]
         public virtual async Task<IActionResult> Delete(Int64 id, CancellationToken ct = default)
         {
             TEntity? existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return NotFound();
+
+            IActionResult? malformed = ApplyIfMatch(existing);
+            if (malformed is not null) return malformed;
 
             existing.Deleted = true;
 
@@ -123,17 +138,56 @@ namespace SupportPortalAPI.Controllers
         }
 
         // Restore api/[controller]/restore/{id:long}
+        //
+        // Same optional If-Match precondition as Delete.
         [HttpPut("restore/{id:long}")]
         public virtual async Task<IActionResult> Restore(Int64 id, CancellationToken ct = default)
         {
             TEntity? existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return NotFound();
 
+            IActionResult? malformed = ApplyIfMatch(existing);
+            if (malformed is not null) return malformed;
+
             existing.Deleted = false;
 
             _repo.Update(existing);
             await _repo.SaveChangesAsync(ct);
             return NoContent();
+
+        }
+
+        /// <summary>
+        /// Applies the optional If-Match precondition to an already-loaded entity.
+        /// <para>
+        /// Stamps the caller's expected RowVersion onto the entity; GenericRepository.Update then
+        /// promotes it to the UPDATE's OriginalValue, so a superseded token is refused by the
+        /// database instead of quietly overwriting whoever got there first. Returns null when the
+        /// request may proceed, or a 400 when the header is present but unreadable.
+        /// </para>
+        /// </summary>
+        private IActionResult? ApplyIfMatch(TEntity existing)
+        {
+            string raw = Request.Headers.IfMatch.ToString();
+
+            // Absent means no precondition. "*" means "whatever version exists", and the row is
+            // already loaded, so that is satisfied without touching the token.
+            if (string.IsNullOrWhiteSpace(raw) || raw.Trim() == "*") return null;
+
+            string tag = raw.Trim();
+            if (tag.StartsWith("W/", StringComparison.Ordinal)) tag = tag.Substring(2);
+            tag = tag.Trim('"');
+
+            try
+            {
+                existing.RowVersion = Convert.FromBase64String(tag);
+            }
+            catch (FormatException)
+            {
+                return BadRequest("If-Match must be the quoted base64 RowVersion taken from a prior read.");
+            }
+
+            return null;
 
         }
 

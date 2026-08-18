@@ -167,13 +167,13 @@ public class SeveritiesControllerTests
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as Severity);
-        Assert.IsInstanceOfType(badResult1, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
         SeverityEntity entity = new SeverityEntity { Id = 2L, Name = "X" };
         Severity updated = new Severity();
         DBMapper.MapPortalEntity2Object(entity, updated);
         var badResult2 = await controller.Update(1L, updated);
-        Assert.IsInstanceOfType(badResult2, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
     }
 
@@ -190,12 +190,12 @@ public class SeveritiesControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(5L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
 
     }
 
     [TestMethod]
-    public async Task Update_ReturnsNoContent_OnSuccess()
+    public async Task Update_ReturnsSavedModel_OnSuccess()
     {
         SeverityEntity existing = new SeverityEntity { Id = 6L, Name = "Before" };
 
@@ -211,7 +211,9 @@ public class SeveritiesControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(6L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+
+        Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
         repoMock.Verify(r => r.Update(It.IsAny<SeverityEntity>()), Times.Once);
         repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 

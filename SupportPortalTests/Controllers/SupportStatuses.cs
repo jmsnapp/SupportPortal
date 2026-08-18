@@ -167,13 +167,13 @@ public class SupportStatusesControllerTests
         SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as SupportStatus);
-        Assert.IsInstanceOfType(badResult1, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
         SupportStatusEntity entity = new SupportStatusEntity { Id = 2L, Name = "X" };
         SupportStatus updated = new SupportStatus();
         DBMapper.MapPortalEntity2Object(entity, updated);
         var badResult2 = await controller.Update(1L, updated);
-        Assert.IsInstanceOfType(badResult2, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
     }
 
@@ -190,12 +190,12 @@ public class SupportStatusesControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(5L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
 
     }
 
     [TestMethod]
-    public async Task Update_ReturnsNoContent_OnSuccess()
+    public async Task Update_ReturnsSavedModel_OnSuccess()
     {
         SupportStatusEntity existing = new SupportStatusEntity { Id = 6L, Name = "Before" };
 
@@ -211,7 +211,9 @@ public class SupportStatusesControllerTests
         DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(6L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NoContentResult));
+        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+
+        Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
         repoMock.Verify(r => r.Update(It.IsAny<SupportStatusEntity>()), Times.Once);
         repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
 
