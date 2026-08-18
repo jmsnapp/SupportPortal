@@ -10,6 +10,8 @@ namespace SupportPortalInfrastructure.Repositories
     public class IntegrationRepository : GenericRepository<IntegrationEntity>
     {
         public IntegrationRepository(SupportPortalDBContext context) : base(context) { }
+        public IntegrationRepository(SupportPortalDBContext context, Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> options)
+            : base(context, options) { }
 
         protected override IQueryable<IntegrationEntity> WithDetail() =>
             _dbSet.Include(i => i.Customer).ThenInclude(c => c.Industry)

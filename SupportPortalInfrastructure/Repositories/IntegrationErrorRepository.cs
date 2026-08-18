@@ -10,6 +10,8 @@ namespace SupportPortalInfrastructure.Repositories
     public class IntegrationErrorRepository : GenericRepository<IntegrationErrorEntity>
     {
         public IntegrationErrorRepository(SupportPortalDBContext context) : base(context) { }
+        public IntegrationErrorRepository(SupportPortalDBContext context, Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> options)
+            : base(context, options) { }
 
         // MapIntegrationErrorEntity2IntegrationError maps Integration shallowly,
         // so its children are not needed.

@@ -10,6 +10,8 @@ namespace SupportPortalInfrastructure.Repositories
     public class ProjectRepository : GenericRepository<ProjectEntity>
     {
         public ProjectRepository(SupportPortalDBContext context) : base(context) { }
+        public ProjectRepository(SupportPortalDBContext context, Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> options)
+            : base(context, options) { }
 
         protected override IQueryable<ProjectEntity> WithDetail() =>
             _dbSet.AsSplitQuery()

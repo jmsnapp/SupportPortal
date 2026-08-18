@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using SupportPortalInfrastructure.Data;
 using SupportPortalInfrastructure.Entities;
 using System;
+using Microsoft.Extensions.Options;
+using SupportPortalInfrastructure.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,12 +18,16 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
 
     protected readonly DbSet<TEntity> _dbSet;
 
-    public const int MaxPageSize = 200;
+    private readonly int _maxPageSize;
 
-    public GenericRepository(SupportPortalDBContext context)
+    // Back-compat constructor for tests or callers that don't use DI to supply options.
+    public GenericRepository(SupportPortalDBContext context) : this(context, Microsoft.Extensions.Options.Options.Create(new PaginationOptions())) { }
+
+    public GenericRepository(SupportPortalDBContext context, IOptions<PaginationOptions> options)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _dbSet = _context.Set<TEntity>();
+        _maxPageSize = options?.Value?.MaxPageSize ?? 200;
     }
 
     /// <summary>
@@ -52,7 +58,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
             .AsNoTracking()
             .OrderBy(x => x.Id)
             .Skip(Math.Max(skip, 0))
-            .Take(Math.Clamp(take, 1, MaxPageSize))
+            .Take(Math.Clamp(take, 1, _maxPageSize))
             .ToListAsync(cancellationToken);
 
         return (items, total);

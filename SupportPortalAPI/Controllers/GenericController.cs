@@ -22,7 +22,7 @@ namespace SupportPortalAPI.Controllers
 
         protected const int DefaultPageSize = 50;
 
-        protected const int MaxPageSize = 200;
+        // MaxPageSize removed from controller; repository enforces the limit.
 
         protected GenericController(IGenericRepository<TEntity> repo)
         {
@@ -75,7 +75,7 @@ namespace SupportPortalAPI.Controllers
         // re-read first, and a caller that did not would replay the token it just superseded
         // and be rejected as a stale write.
         [HttpPut("{id:long}")]
-        public virtual async Task<ActionResult<TModel>> Update(Int64 id, [FromBody] TModel updated, CancellationToken ct = default)
+        public virtual async Task<ActionResult<TModel>> Update(Int64 id, [FromBody] TModel? updated, CancellationToken ct = default)
         {
             if (updated == null || id != updated.Id) return BadRequest();
 
@@ -94,7 +94,7 @@ namespace SupportPortalAPI.Controllers
 
         // POST api/[controller]
         [HttpPost]
-        public virtual async Task<IActionResult> Create([FromBody] TModel create, CancellationToken ct = default)
+        public virtual async Task<IActionResult> Create([FromBody] TModel? create, CancellationToken ct = default)
         {
             if (create == null) return BadRequest();
 
@@ -222,7 +222,8 @@ namespace SupportPortalAPI.Controllers
         private async Task<ActionResult<PagedResult<TModel>>> Collection(int page, int pageSize, bool includeDeleted, CancellationToken ct)
         {
             page = Math.Max(page, 1);
-            pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
+            // Ensure pageSize is at least 1; repository will enforce the upper bound.
+            pageSize = Math.Max(pageSize, 1);
 
             var (entities, total) = await _repo.GetPageAsync((page - 1) * pageSize, pageSize, includeDeleted, ct);
 

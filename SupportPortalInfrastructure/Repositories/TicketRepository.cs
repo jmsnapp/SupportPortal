@@ -12,6 +12,8 @@ namespace SupportPortalInfrastructure.Repositories;
 public class TicketRepository : GenericRepository<TicketEntity>
 {
     public TicketRepository(SupportPortalDBContext context) : base(context) { }
+    public TicketRepository(SupportPortalDBContext context, Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> options)
+        : base(context, options) { }
 
     protected override IQueryable<TicketEntity> WithDetail() =>
         _dbSet.AsSplitQuery()

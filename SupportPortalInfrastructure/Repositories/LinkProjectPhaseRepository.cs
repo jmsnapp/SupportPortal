@@ -10,6 +10,8 @@ namespace SupportPortalInfrastructure.Repositories;
 public class LinkProjectPhaseRepository : GenericRepository<LinkProjectPhaseEntity>
 {
     public LinkProjectPhaseRepository(SupportPortalDBContext context) : base(context) { }
+    public LinkProjectPhaseRepository(SupportPortalDBContext context, Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> options)
+        : base(context, options) { }
 
     protected override IQueryable<LinkProjectPhaseEntity> WithDetail() =>
         _dbSet.Include(lp => lp.Phase);

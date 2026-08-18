@@ -3,6 +3,7 @@ using SupportPortalAPI.Filters;
 using SupportPortalAPI.Validation;
 using SupportPortalInfrastructure.Data;
 using SupportPortalInfrastructure.Repositories;
+using SupportPortalInfrastructure.Configuration;
 using static System.Net.Mime.MediaTypeNames;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,9 @@ builder.Services.AddDbContext<SupportPortalDBContext>(options =>
 
 // Register repositories from infrastructure
 builder.Services.AddRepositories();
+
+// Bind pagination options (optional) so the repository can read MaxPageSize from config.
+builder.Services.Configure<PaginationOptions>(builder.Configuration.GetSection("Pagination"));
 
 // Add a permissive CORS policy for development to allow the Blazor frontend and other clients to call the API.
 builder.Services.AddCors(options =>
