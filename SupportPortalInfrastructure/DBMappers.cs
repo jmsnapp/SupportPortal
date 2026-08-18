@@ -13,7 +13,7 @@ namespace SupportPortalInfrastructure
             if (entity == null) return customer;
 
             MapPortalEntity2Object(entity, customer);
-            MapPortalEntity2Object(entity.Industry, customer.Industry);
+            MapRef(entity.Industry, customer.Industry, entity.IndustryId);
 
             customer.PrimaryContact = entity.PrimaryContactName;
             customer.PrimaryContactEmail = entity.PrimaryContactEmail;
@@ -81,10 +81,11 @@ namespace SupportPortalInfrastructure
             if (entity == null) return integration;
 
             MapPortalEntity2Object(entity, integration);
-            MapPortalEntity2Object(entity.IntegrationType, integration.Type);
-            MapPortalEntity2Object(entity.CurrentStatus, integration.CurrentStatus);
+            MapRef(entity.IntegrationType, integration.Type, entity.IntegrationTypeId);
+            MapRef(entity.CurrentStatus, integration.CurrentStatus, entity.CurrentStatusId);
 
             integration.Customer = MapCustomerEntity2Customer(entity.Customer);
+            integration.Customer.Id = entity.CustomerId;
 
             integration.LastSuccessfulSync = entity.LastSuccessfulSync;
             integration.LastFailedSync = entity.LastFailedSync;
@@ -117,7 +118,7 @@ namespace SupportPortalInfrastructure
             if (entity == null) return objReturn;
 
             MapPortalEntity2Object(entity, objReturn);
-            MapPortalEntity2Object(entity.Integration, objReturn.Integration);
+            MapRef(entity.Integration, objReturn.Integration, entity.IntegrationId);
 
             objReturn.ErrorMessage = entity.ErrorMessage;
             objReturn.ErrorTime = entity.ErrorTime;
@@ -146,7 +147,7 @@ namespace SupportPortalInfrastructure
             if (entity == null) return projectPhase;
 
             MapPortalEntity2Object(entity, projectPhase);
-            MapPortalEntity2Object(entity.Phase, projectPhase.Phase);
+            MapRef(entity.Phase, projectPhase.Phase, entity.PhaseId);
 
             projectPhase.ProjectId = entity.ProjectId;
             projectPhase.Percentage = entity.Percentage;
@@ -176,9 +177,10 @@ namespace SupportPortalInfrastructure
             if (entity == null) return project;
 
             MapPortalEntity2Object(entity, project);
-            MapPortalEntity2Object(entity.CurrentPhase, project.CurrentPhase);
+            MapRef(entity.CurrentPhase, project.CurrentPhase, entity.CurrentPhaseId);
 
             project.Customer = MapCustomerEntity2Customer(entity.Customer);
+            project.Customer.Id = entity.CustomerId;
 
             foreach (LinkProjectPhaseEntity linkProjectPhaseEntity in entity.Phases ?? Enumerable.Empty<LinkProjectPhaseEntity>())
                 project.Phases.Add(MapLinkProjectPhaseEntity2ProjectPhase(linkProjectPhaseEntity));
@@ -264,15 +266,19 @@ namespace SupportPortalInfrastructure
             MapPortalEntity2Object(entity, ticket);
 
             ticket.Customer = MapCustomerEntity2Customer(entity.Customer);
+            ticket.Customer.Id = entity.CustomerId;
             ticket.Integration = MapIntegrationEntity2Integration(entity.Integration);
+            ticket.Integration.Id = entity.IntegrationId;
 
-            MapPortalEntity2Object(entity.Severity, ticket.Severity);
-            MapPortalEntity2Object(entity.Status, ticket.Status);
+            MapRef(entity.Severity, ticket.Severity, entity.SeverityId);
+            MapRef(entity.Status, ticket.Status, entity.StatusId);
 
             // EscalationId 0 is the DEFAULT sentinel row, not a real escalation.
             ticket.Escalation = entity.EscalationId == 0
                 ? new Escalation { Id = 0 }
                 : MapEscalationEntity2Escalation(entity.Escalation);
+
+            ticket.Escalation.Id = entity.EscalationId;
 
             foreach (TicketNoteEntity note in entity.Notes ?? Enumerable.Empty<TicketNoteEntity>())
                 ticket.Notes.Add(MapTicketNoteEntity2TicketNote(note));
@@ -324,6 +330,20 @@ namespace SupportPortalInfrastructure
         /// loudly at the FK rather than being silently rewritten to DEFAULT.
         /// </summary>
         private static Int64 Ref(PortalObject? obj) => obj is null || obj.Id < 0 ? 0 : obj.Id;
+
+        /// <summary>
+        /// Fills a nested reference: content from the navigation when one was loaded, identity
+        /// always from the FK column. A summary query need not Include the navigation, and
+        /// without this the mapper cannot tell "not loaded" from "not set" — both would arrive
+        /// as Id 0 and a real reference would be reported as the DEFAULT row.
+        /// Read-side counterpart to Ref().
+        /// </summary>
+        private static void MapRef(PortalEntity? entity, PortalObject obj, Int64 foreignKey)
+        {
+            MapPortalEntity2Object(entity, obj);
+            obj.Id = foreignKey;
+
+        }
 
         public static void MapPortalEntity2Object(PortalEntity? entity, PortalObject obj)
         {
