@@ -37,8 +37,8 @@ public class ProjectNoteRepositoryTests
         await ctx.ProjectNotes.AddRangeAsync(notes);
         await ctx.SaveChangesAsync();
 
-        var repo = new ProjectNoteRepository(ctx);
-        var result = (await repo.GetByProjectIdAsync(0)).ToList();
+        var repo = new GenericRepository<ProjectNoteEntity>(ctx);
+        var result = await repo.Query().Where(p => p.ProjectId == 0).ToListAsync();
 
         Assert.AreEqual(3, result.Count);
         CollectionAssert.AreEquivalent(new[] { "A", "B", "C" }, result.Select(r => r.Note).ToArray());

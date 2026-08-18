@@ -8,6 +8,8 @@ namespace SupportPortalAPI.Controllers
 {
     public class IndustriesController : GenericController<IndustryEntity, Industry>
     {
-        public IndustriesController(IGenericRepository<IndustryEntity> repo, DBMapper mapper) : base(repo, mapper) { }
+        public IndustriesController(IGenericRepository<IndustryEntity> repo) : base(repo) { }
+
     }
+
 }

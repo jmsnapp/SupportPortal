@@ -23,6 +23,19 @@ public class GenericRepositoryTests
     }
 
     [TestMethod]
+    public void Model_MatchesRelationalSchema()
+    {
+        var options = new DbContextOptionsBuilder<SupportPortalDBContext>()
+            .UseSqlServer("Server=(local);Database=SupportPortalDB;Trusted_Connection=True;")
+            .Options;                     // never actually connects
+
+        using var ctx = new SupportPortalDBContext(options);
+        // Throws if any configuration is inconsistent
+        _ = ctx.Model.GetRelationalModel();
+
+    }
+
+    [TestMethod]
     public async Task Add_GetAll_GetById_Update_Remove_SaveChanges_Works()
     {
         using var ctx = CreateContext();
@@ -33,7 +46,7 @@ public class GenericRepositoryTests
         await repo.AddAsync(entity);
         await repo.SaveChangesAsync();
 
-        var all = (await repo.GetAllAsync()).ToList();
+        var all = (await repo.GetPageAsync(0, 50, includeDeleted: true)).Items.ToList();
         Assert.AreEqual(1, all.Count);
         var saved = all.First();
 
@@ -54,7 +67,7 @@ public class GenericRepositoryTests
         repo.Update(updated);
         await repo.SaveChangesAsync();
 
-        var active = (await repo.GetAllActiveAsync()).ToList();
+        var active = (await repo.GetPageAsync(0, 50, includeDeleted: false)).Items.ToList();
         Assert.IsFalse(active.Any());
 
     }

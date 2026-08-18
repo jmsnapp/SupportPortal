@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 using SupportPortalAPI.Controllers;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
-using SupportPortalDomain;
+using SupportPortalInfrastructure;
 using SupportPortalDomain.Models;
 
 namespace SupportPortalTests.Controllers;
@@ -52,8 +52,6 @@ public class ProjectNotesControllerTests
 
     }
 
-    private DBMapper _mapper = new DBMapper();
-
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
@@ -62,7 +60,7 @@ public class ProjectNotesControllerTests
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
         var result = await controller.GetById(1L) as OkObjectResult;
 
@@ -80,7 +78,7 @@ public class ProjectNotesControllerTests
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((ProjectNoteEntity?)null);
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
         var result = await controller.GetById(99L);
 
@@ -96,7 +94,7 @@ public class ProjectNotesControllerTests
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
         repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
         var result = await controller.GetByName("Closed") as OkObjectResult;
 
@@ -118,16 +116,20 @@ public class ProjectNotesControllerTests
         };
 
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+        repoMock
+            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((IReadOnlyList<ProjectNoteEntity>)entities, entities.Count));
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        var result = await controller.GetAll() as OkObjectResult;
+        ActionResult<PagedResult<ProjectNote>> result = await controller.GetAll();
 
-        Assert.IsNotNull(result);
-        var models = result!.Value as IEnumerable<ProjectNote>;
-        Assert.IsNotNull(models);
-        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), models!.Select(m => m.Id).ToList());
+        PagedResult<ProjectNote> page = result.Value!;
+        Assert.IsNotNull(page);
+        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
+        Assert.AreEqual(entities.Count, page.TotalCount);
+
+        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
@@ -141,16 +143,20 @@ public class ProjectNotesControllerTests
         };
 
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
-        repoMock.Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+        repoMock
+            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((IReadOnlyList<ProjectNoteEntity>)entities, entities.Count));
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        var result = await controller.GetAllActive() as OkObjectResult;
+        ActionResult<PagedResult<ProjectNote>> result = await controller.GetAllActive();
 
-        Assert.IsNotNull(result);
-        var models = result!.Value as IEnumerable<ProjectNote>;
-        Assert.IsNotNull(models);
-        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), models!.Select(m => m.Id).ToList());
+        PagedResult<ProjectNote> page = result.Value!;
+        Assert.IsNotNull(page);
+        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
+        Assert.AreEqual(entities.Count, page.TotalCount);
+
+        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
@@ -158,12 +164,14 @@ public class ProjectNotesControllerTests
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        var badResult1 = await controller.Update(1L, null as ProjectNoteEntity);
+        var badResult1 = await controller.Update(1L, null as ProjectNote);
         Assert.IsInstanceOfType(badResult1, typeof(BadRequestResult));
 
-        ProjectNoteEntity updated = new ProjectNoteEntity { Id = 2L, Name = "X" };
+        ProjectNoteEntity entity = new ProjectNoteEntity { Id = 2L, Name = "X" };
+        ProjectNote updated = new ProjectNote();
+        DBMapper.MapPortalEntity2Object(entity, updated);
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2, typeof(BadRequestResult));
 
@@ -175,9 +183,11 @@ public class ProjectNotesControllerTests
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((ProjectNoteEntity?)null);
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        ProjectNoteEntity updated = new ProjectNoteEntity { Id = 5L, Name = "Z" };
+        ProjectNoteEntity entity = new ProjectNoteEntity { Id = 5L, Name = "Z" };
+        ProjectNote updated = new ProjectNote();
+        DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -194,9 +204,11 @@ public class ProjectNotesControllerTests
         repoMock.Setup(r => r.Update(It.IsAny<ProjectNoteEntity>())).Verifiable();
         repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        ProjectNoteEntity updated = new ProjectNoteEntity { Id = 6L, Name = "After" };
+        ProjectNoteEntity entity = new ProjectNoteEntity { Id = 6L, Name = "After" };
+        ProjectNote updated = new ProjectNote();
+        DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(6L, updated);
 
         Assert.IsInstanceOfType(result, typeof(NoContentResult));
@@ -209,9 +221,9 @@ public class ProjectNotesControllerTests
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        var result = await controller.Create(null as ProjectNoteEntity);
+        var result = await controller.Create(null as ProjectNote);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestResult));
 
@@ -225,10 +237,13 @@ public class ProjectNotesControllerTests
         Mock<IGenericRepository<ProjectNoteEntity>> repoMock = new Mock<IGenericRepository<ProjectNoteEntity>>();
         repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
 
-        ProjectNotesController controller = new ProjectNotesController(repoMock.Object, _mapper);
+        ProjectNotesController controller = new ProjectNotesController(repoMock.Object);
 
-        var result = await controller.Create(toCreate) as CreatedAtActionResult;
+        ProjectNote created = new ProjectNote();
+        DBMapper.MapPortalEntity2Object(toCreate, created);
+        var result = await controller.Create(created) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
         Assert.AreEqual(nameof(GenericController<ProjectNoteEntity, ProjectNote>.GetById), result!.ActionName);

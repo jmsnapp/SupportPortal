@@ -7,6 +7,8 @@ namespace SupportPortalAPI.Controllers
 {
     public class IntegrationStatusesController : GenericController<IntegrationStatusEntity, IntegrationStatus>
     {
-        public IntegrationStatusesController(IGenericRepository<IntegrationStatusEntity> repo, DBMapper mapper) : base(repo, mapper) { }
+        public IntegrationStatusesController(IGenericRepository<IntegrationStatusEntity> repo) : base(repo) { }
+
     }
+
 }

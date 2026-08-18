@@ -4,21 +4,19 @@ using SupportPortalInfrastructure.Entities;
 
 namespace SupportPortalInfrastructure.Repositories;
 
-public interface IGenericRepository<PortalEntity>
+public interface IGenericRepository<TEntity>
 {
-    Task<IEnumerable<PortalEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    public Task<(IReadOnlyList<TEntity> Items, int TotalCount)> GetPageAsync(int skip, int take, bool includeDeleted = false, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<PortalEntity>> GetAllActiveAsync(CancellationToken cancellationToken = default);
+    Task<TEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
 
-    Task<PortalEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
+    Task<TEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
 
-    Task<PortalEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
+    Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 
-    Task AddAsync(PortalEntity entity, CancellationToken cancellationToken = default);
+    void Update(TEntity entity);
 
-    void Update(PortalEntity entity);
-
-    IQueryable<PortalEntity> Query();
+    IQueryable<TEntity> Query();
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

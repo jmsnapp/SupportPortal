@@ -7,6 +7,8 @@ namespace SupportPortalAPI.Controllers
 {
     public class SeveritiesController : GenericController<SeverityEntity, Severity>
     {
-        public SeveritiesController(IGenericRepository<SeverityEntity> repo, DBMapper mapper) : base(repo, mapper) { }
+        public SeveritiesController(IGenericRepository<SeverityEntity> repo) : base(repo) { }
+
     }
+
 }

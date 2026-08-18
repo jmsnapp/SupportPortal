@@ -1,8 +1,15 @@
 # Design Notes
 
-I have been using Artificial Intelligence (specifically Microsoft CoPilot in Visual Studio) to scaffold the projects in this solution. This has been very useful in setting up the basic project structures and providing a 'first pass' of the basic objects (such as the database table definitions, the Infrastructure entities and models, the API controllers, and the Unit Tests).  I have still had to go in to modify these bases to fit my style and approaches, but the use of AI has significantly cut down on the time needed to architect all of this out.
+I have been using Artificial Intelligence (specifically Microsoft CoPilot in Visual Studio) to scaffold the projects in this solution. This has been very useful in setting up the basic project structures and providing a 'first pass' of the basic objects (such as the database table definitions, the Infrastructure entities and models, the API controllers, and the Unit Tests).  I have still had to go in to modify these bases to fit my style and approaches, but the use of AI has significantly cut down on the time needed to architect all of this out.  I have also been using Claude Code to review the codebase and surface any missing areas and defects that might be present.
 
 I have also been impressed with the value provided by Microsoft CoPilot in Visual Studio, as I am using the Visual Studio community edition, and am not paying for any extra tokens or resources.  In the process of scaffolding the database project, the infrastructure project, and the API, I did use up all my Inline suggestions, but less than 20% of my Monthly Limit for my copilot context.  Compare that to Anthropic's Claude, where I was not able to revise my resume using another version of the document and my CV without having to purchase their lowest tier service.  I suspect that the difference in value is due to Microsoft using their own MAI models for much of this work, and (very strangely for a technology company in this day and age) passing those savings on to me.
+
+This is very much a work in progress.  The code on this branch consists of the Database structure, the Database interface layer (SupportPortalInfrastructure), a Domain layer (currently very thin), and finally an API. Here is what I still need to do, in the order I plan to build them next:
+
+- The SupportPortalUI, a Server-Side Blazor application (currently in progress on the Develop branch).
+- Add Authentication and Authorization, probably using OAuth2.
+- Add logging.
+- Add CI/CD infrastructure.  Hopefully by that point, I can afford the lowest paid tier of Azure and/or AWS to deploy to.
 
 # Database
 
@@ -26,9 +33,13 @@ Third, each table has a 'Description' field. This column is what will usually be
 
 Finally, each table has a 'Deleted' field. This is used to cause a soft delete of objects, instead of a hard delete. If, at some later date, the tables need to be cleared out of old data, then an archiving process can be built to take care of this. In the meantime, data integrity is always preserved. It does mean that the application does have to filter out deleted items, but this is a simple conditional in a SQL query or a LINQ query. This also means that there is no function difference between an Update operation and a Delete operation- technically, the Delete operation does not exist. This is put in as an administrative survival mechanism. If I had a dollar (USD) for every stakeholder who said 'I need that <whatever> back!' aftet deleting something, I wouldn't need to have a portfolio project.
 
-Also, notice that I do not allow Nulls in the database. As a result, I have default data defined for fields that are not required. I try to do this whenever I can, as Null values in the data store propogate through the application code and cause issues. Therefore, I should not have to do any null checks on the data coming from my datastore. I will have to do some value checks on objects to see if they are 'real', but those checks can only be where logically necessary. I should not have to do any null checks of data being sent to the User Interface, because I know that an acceptable default value will be there, at least.
+Also, notice that I do not allow Nulls in the database. As a result, I have default data defined for fields that are not required. I try to do this whenever I can, as Null values in the data store propagate through the application code and cause issues. Therefore, I should not have to do any null checks on the data coming from my datastore. I will have to do some value checks on objects to see if they are 'real', but those checks can only be where logically necessary. I should not have to do any null checks of data being sent to the User Interface, because I know that an acceptable default value will be there, at least.
 
 This also means that I have had to enter default data into my datastore, specifically a default entry in every table, set to default data for all fields. These rows will have the 'Id' of 0 (due to my seed value above), so any object with an 'Id' of '0' is not 'real' and can be discarded. However, this also means that foreign keys are always defined, even for empty objects, further reducing the need for Null checks.
+
+## A Note about Database Security
+
+Yes, I know that I have the connection string in a config file where everyone can see it.  However, this is a demonstration solution, and this is done for ease of use by someone else.  In a real production application, the server and catalog would be Environment Variables, and the username and password would be in some sort of key vault.
 
 # Infrastructure
 
@@ -46,11 +57,11 @@ Usually what I would do for a project like this is create a series of stored pro
 
 For complex objects that have foreign keys, I use these basic procedures for the links to the child tables.  That way, if there is a problem in a given stored procedure, I only have to fix it in one location.
 
+I personally can't stand ORMs in general. If you will notice, most of the code in the Infrastructure project is just various mappings and configurations to get EFCore to find it's own butt with one hand or the other. It uses naming conventions to build objects, but requires mappings and configurations to navigate the implied object tree which uses those same naming conventions to indicate the navigation.
+
 # Domain
 
 The Domain project is sparse, as this system is currently a very simple system. I have the domain models defined in there (and those are also very simple due to the straightforward requirements of the system).
-
-I also have the DBMapper class in the Domain project instead of the Infrastructure project. I did this because the DB Mapper takes the Infrastructure entities and maps them to Domain models.  If I decide to add another data source (like an API, for example), I can put that access and it's appropriate entities into the Infrastructure project, then just add an appropriate Mapper class to the Domain project.  That Infrastructure/Domain boundary remains defined across data sources, and layers above the domain (the SupportPortalAPI and eventually the Web UI) are not majorly affected by the new data source, other than their Models can now show data from that new source.
 
 # API
 

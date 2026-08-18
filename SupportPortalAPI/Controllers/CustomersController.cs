@@ -11,19 +11,20 @@ namespace SupportPortalAPI.Controllers
 {
     public class CustomersController : GenericController<CustomerEntity, Customer>
     {
-        private readonly IGenericRepository<IndustryEntity> _industryRepo;
+        public CustomersController(IGenericRepository<CustomerEntity> repo) : base(repo)
+        { }
 
-        public CustomersController(IGenericRepository<CustomerEntity> repo, IGenericRepository<IndustryEntity> industryRepo, DBMapper mapper)
-            : base(repo, mapper)
-        {
-            _industryRepo = industryRepo;
-        }
-
-        protected override Task<Customer> MapEntityToModelAsync(CustomerEntity entity)
+        protected override Customer MapEntityToModel(CustomerEntity entity)
         {
             // Use existing Mapper method that wires in industry repository
-            var model = _mapper.MapCustomerEntity2Customer(entity, _industryRepo);
-            return Task.FromResult(model);
+            var model = DBMapper.MapCustomerEntity2Customer(entity);
+            return model;
+
         }
+
+        protected override void MapModelToEntity(Customer model, CustomerEntity entity) =>
+            DBMapper.MapCustomer2CustomerEntity(model, ref entity);
+
     }
+
 }

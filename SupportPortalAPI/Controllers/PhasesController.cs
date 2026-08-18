@@ -7,6 +7,8 @@ namespace SupportPortalAPI.Controllers
 {
     public class PhasesController : GenericController<PhaseEntity, Phase>
     {
-        public PhasesController(IGenericRepository<PhaseEntity> repo, DBMapper mapper) : base(repo, mapper) { }
+        public PhasesController(IGenericRepository<PhaseEntity> repo) : base(repo) { }
+
     }
+
 }

@@ -32,5 +32,31 @@ public class SupportPortalDBContext : DbContext
 
         // Scaffolded mapping will normally go here.
         // If you later scaffold from the DB, generated mappings will replace or augment these.
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SupportPortalDBContext).Assembly);
+
+        ApplySoftDeleteFilters(modelBuilder);
+
     }
+
+    private static void ApplySoftDeleteFilters(ModelBuilder modelBuilder)
+    {
+        // Aggregate roots and child collections only.
+        //
+        // Deliberately NOT filtered: Customers, Industries, Phases, Severities,
+        // SupportStatuses, IntegrationTypes, IntegrationStatuses, Integrations,
+        // Escalations. All are targets of required navigations, and their DEFAULT
+        // sentinel rows are seeded Deleted = 1 — filtering them would inner-join
+        // dependent rows out of existence. Those tables keep using the explicit
+        // GetAllActiveAsync() filter for dropdown population instead.
+
+        modelBuilder.Entity<TicketEntity>().HasQueryFilter(e => !e.Deleted);
+        modelBuilder.Entity<ProjectEntity>().HasQueryFilter(e => !e.Deleted);
+        modelBuilder.Entity<TicketNoteEntity>().HasQueryFilter(e => !e.Deleted);
+        modelBuilder.Entity<ProjectNoteEntity>().HasQueryFilter(e => !e.Deleted);
+        modelBuilder.Entity<LinkProjectPhaseEntity>().HasQueryFilter(e => !e.Deleted);
+        modelBuilder.Entity<IntegrationErrorEntity>().HasQueryFilter(e => !e.Deleted);
+
+    }
+
 }

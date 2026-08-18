@@ -37,8 +37,8 @@ public class TicketNoteRepositoryTests
         await ctx.TicketNotes.AddRangeAsync(notes);
         await ctx.SaveChangesAsync();
 
-        var repo = new TicketNoteRepository(ctx);
-        var result = (await repo.GetByTicketIdAsync(0)).ToList();
+        var repo = new GenericRepository<TicketNoteEntity>(ctx);
+        var result = await repo.Query().Where(p => p.TicketId == 0).ToListAsync();
 
         Assert.AreEqual(3, result.Count);
         CollectionAssert.AreEquivalent(new[] { "X", "Y", "Z" }, result.Select(r => r.Note).ToArray());

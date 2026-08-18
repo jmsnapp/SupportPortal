@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using SupportPortalDomain;
+using SupportPortalInfrastructure;
 using SupportPortalDomain.Models;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
@@ -8,27 +8,19 @@ namespace SupportPortalAPI.Controllers
 {
     public class ProjectsController : GenericController<ProjectEntity, Project>
     {
-        private readonly ILinkProjectPhaseRepository _projectPhaseRepo;
-        private readonly IGenericRepository<PhaseEntity> _phaseRepo;
-        private readonly IProjectNoteRepository _projectNoteRepo;
+        public ProjectsController (IGenericRepository<ProjectEntity> repo) : base(repo)
+        { }
 
-        public ProjectsController(
-            IGenericRepository<ProjectEntity> repo,
-            ILinkProjectPhaseRepository projectPhaseRepo,
-            IGenericRepository<PhaseEntity> phaseRepo,
-            IProjectNoteRepository projectNoteRepo,
-            DBMapper mapper)
-            : base(repo, mapper)
+        protected override Project MapEntityToModel(ProjectEntity entity)
         {
-            _projectPhaseRepo = projectPhaseRepo;
-            _phaseRepo = phaseRepo;
-            _projectNoteRepo = projectNoteRepo;
+            var model = DBMapper.MapProjectEntity2Project(entity);
+            return model;
+
         }
 
-        protected override Task<Project> MapEntityToModelAsync(ProjectEntity entity)
-        {
-            var model = _mapper.MapProjectEntity2Project(entity, _projectPhaseRepo, _phaseRepo, _projectNoteRepo);
-            return Task.FromResult(model);
-        }
+        protected override void MapModelToEntity(Project model, ProjectEntity entity) =>
+            DBMapper.MapProject2ProjectEntity(model, ref entity);
+
     }
+
 }

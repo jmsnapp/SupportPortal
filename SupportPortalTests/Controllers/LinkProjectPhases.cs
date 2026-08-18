@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 using SupportPortalAPI.Controllers;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
-using SupportPortalDomain;
+using SupportPortalInfrastructure;
 using SupportPortalDomain.Models;
 
 namespace SupportPortalTests.Controllers;
@@ -52,21 +52,15 @@ public class LinkProjectPhasesControllerTests
 
     }
 
-    private DBMapper _mapper = new DBMapper();
-
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
         LinkProjectPhaseEntity entity = new LinkProjectPhaseEntity { Id = 1L, Name = "Open", PhaseId = 1L };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L)).ReturnsAsync(phaseEntity);
 
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
         var result = await controller.GetById(1L) as OkObjectResult;
 
@@ -81,15 +75,10 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
-
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((LinkProjectPhaseEntity?)null);
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
         var result = await controller.GetById(99L);
 
@@ -100,16 +89,12 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task GetByName_ReturnsOk_WhenFound()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
         LinkProjectPhaseEntity entity = new LinkProjectPhaseEntity { Id = 2L, Name = "Closed", PhaseId = 1L };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L)).ReturnsAsync(phaseEntity);
 
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
         repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
         var result = await controller.GetByName("Closed") as OkObjectResult;
 
@@ -124,74 +109,69 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
         var entities = new List<LinkProjectPhaseEntity>
         {
             new LinkProjectPhaseEntity { Id = 1L, Name = "A", PhaseId = 1L },
             new LinkProjectPhaseEntity { Id = 2L, Name = "B", PhaseId = 1L },
         };
 
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L)).ReturnsAsync(phaseEntity);
-
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+        repoMock
+            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((IReadOnlyList<LinkProjectPhaseEntity>)entities, entities.Count));
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var result = await controller.GetAll() as OkObjectResult;
+        ActionResult<PagedResult<ProjectPhase>> result = await controller.GetAll();
 
-        Assert.IsNotNull(result);
-        var models = result!.Value as IEnumerable<ProjectPhase>;
-        Assert.IsNotNull(models);
-        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), models!.Select(m => m.Id).ToList());
+        PagedResult<ProjectPhase> page = result.Value!;
+        Assert.IsNotNull(page);
+        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
+        Assert.AreEqual(entities.Count, page.TotalCount);
+
+        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
         var entities = new List<LinkProjectPhaseEntity>
         {
             new LinkProjectPhaseEntity { Id = 3L, Name = "Active1", PhaseId = 1L },
             new LinkProjectPhaseEntity { Id = 4L, Name = "Active2", PhaseId = 1L },
         };
 
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
-
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
-        repoMock.Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+        repoMock
+            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((IReadOnlyList<LinkProjectPhaseEntity>)entities, entities.Count));
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var result = await controller.GetAllActive() as OkObjectResult;
+        ActionResult<PagedResult<ProjectPhase>> result = await controller.GetAllActive();
 
-        Assert.IsNotNull(result);
-        var models = result!.Value as IEnumerable<ProjectPhase>;
-        Assert.IsNotNull(models);
-        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), models!.Select(m => m.Id).ToList());
+        PagedResult<ProjectPhase> page = result.Value!;
+        Assert.IsNotNull(page);
+        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
+        Assert.AreEqual(entities.Count, page.TotalCount);
+
+        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
-
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var badResult1 = await controller.Update(1L, null as LinkProjectPhaseEntity);
+        var badResult1 = await controller.Update(1L, null as ProjectPhase);
         Assert.IsInstanceOfType(badResult1, typeof(BadRequestResult));
 
-        var updated = new LinkProjectPhaseEntity { Id = 2L, Name = "X" };
+        var entity= new LinkProjectPhaseEntity { Id = 2L, Name = "X" };
+        ProjectPhase updated = new ProjectPhase();
+        DBMapper.MapPortalEntity2Object(entity, updated);
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2, typeof(BadRequestResult));
 
@@ -200,17 +180,14 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
-
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((LinkProjectPhaseEntity?)null);
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var updated = new LinkProjectPhaseEntity { Id = 5L, Name = "Z", PhaseId = 1L };
+        var entity = new LinkProjectPhaseEntity { Id = 5L, Name = "Z", PhaseId = 1L };
+        ProjectPhase updated = new ProjectPhase();
+        DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result, typeof(NotFoundResult));
@@ -220,20 +197,18 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task Update_ReturnsNoContent_OnSuccess()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
         LinkProjectPhaseEntity existing = new LinkProjectPhaseEntity { Id = 6L, Name = "Before", PhaseId = 1L };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
 
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
         repoMock.Setup(r => r.Update(It.IsAny<LinkProjectPhaseEntity>())).Verifiable();
         repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var updated = new LinkProjectPhaseEntity { Id = 6L, Name = "After", PhaseId = 1L };
+        var entity = new LinkProjectPhaseEntity { Id = 6L, Name = "After", PhaseId = 1L };
+        ProjectPhase updated = new ProjectPhase();
+        DBMapper.MapPortalEntity2Object(entity, updated);
         var result = await controller.Update(6L, updated);
 
         Assert.IsInstanceOfType(result, typeof(NoContentResult));
@@ -245,15 +220,10 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
-
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var result = await controller.Create(null as LinkProjectPhaseEntity);
+        var result = await controller.Create(null as ProjectPhase);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestResult));
 
@@ -262,19 +232,18 @@ public class LinkProjectPhasesControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        PhaseEntity phaseEntity = new PhaseEntity() { Id = 1L, Name = "DEFAULT" };
         LinkProjectPhaseEntity toCreate = new LinkProjectPhaseEntity { Id = 7L, Name = "New", PhaseId = 1L };
-
-        Mock<IGenericRepository<PhaseEntity>> repoPhase = new Mock<IGenericRepository<PhaseEntity>>();
-        repoPhase.Setup(p => p.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(phaseEntity);
 
         Mock<IGenericRepository<LinkProjectPhaseEntity>> repoMock = new Mock<IGenericRepository<LinkProjectPhaseEntity>>();
         repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
 
-        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object, repoPhase.Object, _mapper);
+        LinkProjectPhasesController controller = new LinkProjectPhasesController(repoMock.Object);
 
-        var result = await controller.Create(toCreate) as CreatedAtActionResult;
+        ProjectPhase created = new ProjectPhase();
+        DBMapper.MapPortalEntity2Object(toCreate, created);
+        var result = await controller.Create(created) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
         Assert.AreEqual(nameof(GenericController<LinkProjectPhaseEntity, ProjectPhase>.GetById), result!.ActionName);

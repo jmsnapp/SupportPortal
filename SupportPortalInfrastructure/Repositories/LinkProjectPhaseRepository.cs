@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace SupportPortalInfrastructure.Repositories;
 
-public class LinkProjectPhaseRepository : GenericRepository<LinkProjectPhaseEntity>, ILinkProjectPhaseRepository
+public class LinkProjectPhaseRepository : GenericRepository<LinkProjectPhaseEntity>
 {
-
     public LinkProjectPhaseRepository(SupportPortalDBContext context) : base(context) { }
 
-    public async Task<IEnumerable<LinkProjectPhaseEntity>> GetByProjectIdAsync(Int64 projectId, CancellationToken cancellationToken = default) =>
-        await _dbSet
-            .Where(link => link.ProjectId == projectId && !link.Deleted)
-            .ToListAsync(cancellationToken);
+    protected override IQueryable<LinkProjectPhaseEntity> WithDetail() =>
+        _dbSet.Include(lp => lp.Phase);
+
+    protected override IQueryable<LinkProjectPhaseEntity> WithSummary() =>
+        _dbSet.Include(lp => lp.Phase);
 
 }

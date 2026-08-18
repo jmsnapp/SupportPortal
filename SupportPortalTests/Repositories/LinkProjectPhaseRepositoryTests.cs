@@ -1,11 +1,12 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SupportPortalInfrastructure.Data;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SupportPortalTests.Repositories;
 
@@ -29,16 +30,16 @@ public class LinkProjectPhaseRepositoryTests
 
         var links = new[]
         {
-            new LinkProjectPhaseEntity { ProjectId = 0, PhaseId = 1, Percentage = 10 },
-            new LinkProjectPhaseEntity { ProjectId = 0, PhaseId = 2, Percentage = 20 },
-            new LinkProjectPhaseEntity { ProjectId = 0, PhaseId = 3, Percentage = 30 }
+            new LinkProjectPhaseEntity { ProjectId = 1L, PhaseId = 1, Phase = new PhaseEntity { Id = 1 }, Percentage = 10 },
+            new LinkProjectPhaseEntity { ProjectId = 1L, PhaseId = 2, Phase = new PhaseEntity { Id = 2 }, Percentage = 20 },
+            new LinkProjectPhaseEntity { ProjectId = 1L, PhaseId = 3, Phase = new PhaseEntity { Id = 3 }, Percentage = 30 }
         };
 
         await ctx.LinkProjectPhases.AddRangeAsync(links);
         await ctx.SaveChangesAsync();
 
         var repo = new LinkProjectPhaseRepository(ctx);
-        var result = (await repo.GetByProjectIdAsync(0)).ToList();
+        var result = await repo.Query().Where(p => p.ProjectId == 1).ToListAsync();
 
         Assert.AreEqual(3, result.Count);
         CollectionAssert.AreEquivalent(new object[] { 1L, 2L, 3L }, result.Select(r => r.PhaseId).ToArray());

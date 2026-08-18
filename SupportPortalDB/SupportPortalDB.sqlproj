@@ -58,7 +58,6 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Tables" />
-    <Folder Include="StoredProcedures" />
     <Folder Include="SeedData" />
   </ItemGroup>
   <ItemGroup>

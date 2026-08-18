@@ -114,32 +114,32 @@ INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [Phase
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEFAULT'), 
 	0, 0, 1);
 INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
-	VALUES('DEFAULT', 'Default', 
+	VALUES('1_1', '1_1', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'BUS_REQ_DISCOVERY'), 
 	20, 1);
 INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
-	VALUES('DEFAULT', 'Default', 
+	VALUES('1_2', '1_2', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'TECH_REQ_DISCOVERY'), 
 	20, 2);
 INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
-	VALUES('DEFAULT', 'Default', 
+	VALUES('1_3', '1_3', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEVELOPMENT'), 
 	20, 3);
 INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
-	VALUES('DEFAULT', 'Default', 
+	VALUES('1_4', '1_4', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'TESTING'), 
 	20, 4);
 INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
-	VALUES('DEFAULT', 'Default', 
+	VALUES('1_5', '1_5', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'DEPLOYMENT'), 
 	20, 5);
 INSERT INTO [dbo].[LinkProjectPhases]([Name], [Description], [ProjectId], [PhaseId], [Percentage], [Order])
-	VALUES('DEFAULT', 'Default', 
+	VALUES('1_6', '1_6', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	(SELECT [Id] FROM [dbo].[Phases] WHERE [Name] = 'MAINTENANCE'), 
 	0, 6);
@@ -148,12 +148,12 @@ INSERT INTO [dbo].[ProjectNotes]([Name], [Description], [ProjectId], [Deleted])
 	VALUES ('DEFAULT', 'Default Note', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'DEFAULT'), 1);
 INSERT INTO [dbo].[ProjectNotes]([Name], [Description], [ProjectId], [Note], [CreateTime])
-	VALUES('1', 'Business Requirements status', 
+	VALUES('1_1', 'Business Requirements status', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	'Business Requirements determined and documented.', 
 	DATEADD(MONTH, -5, GETDATE()));
 INSERT INTO [dbo].[ProjectNotes]([Name], [Description], [ProjectId], [Note], [CreateTime])
-	VALUES('2', 'Technical Requirements status', 
+	VALUES('1_2', 'Technical Requirements status', 
 	(SELECT [Id] FROM [dbo].[Projects] WHERE [Name] = 'STAR2DOW'), 
 	'Technical Requirements determined and documented.', 
 	DATEADD(MONTH, -4, GETDATE()));
@@ -161,7 +161,7 @@ INSERT INTO [dbo].[ProjectNotes]([Name], [Description], [ProjectId], [Note], [Cr
 INSERT INTO [dbo].[Escalations]([Name], [Description], [ProblemSummary], [CustomerImpact], [RootCause], [RecommendedActions], [Deleted])
 	VALUES('DEFAULT', 'Default', 'Default', 'Default', 'Default', 'Default', 1);
 INSERT INTO [dbo].[Escalations]([Name], [Description], [CreatedDate], [ProblemSummary], [CustomerImpact], [RootCause], [RecommendedActions])
-	VALUES('1', 'Lexcorp to Doom integration failure', DATEADD(MONTH, -5, GETDATE()), 
+	VALUES('LEX2DOOM_DOWN_2026', 'Lexcorp to Doom integration failure', DATEADD(MONTH, -5, GETDATE()), 
 	'Legion of Doom API not responding.', 'Customer is evasive on impact.  Due to language used by reporting contact, set impact at critical.', 
 	'JLA Feed has a log entry referencing a JLA operation at the time that the customer''s API went down.  Reasonably suspect that the other server is no longer operational.', 
 	'Recommend customer investigate other datacenter for remains.');
@@ -177,7 +177,7 @@ INSERT INTO [dbo].[Tickets]([Name], [Description], [CustomerId], [IntegrationId]
 	'Default', 'Default', GETDATE(), GETDATE(), '', 
 	(SELECT [Id] FROM [dbo].[Escalations] WHERE [Name] = 'DEFAULT'), 1);
 INSERT INTO [dbo].[Tickets]([Name], [Description], [CustomerId], [IntegrationId], [Reproduce], [SeverityId], [StatusId], [ReportedBy], [AssignedTo], [CreatedDate], [ResolutionDate], [Resolution], [EscalationId])
-	VALUES('1', 'Lex2Doom integration down', 
+	VALUES('Lex2DoomDown_2026', 'Lex2Doom integration down', 
 	(SELECT [Id] FROM [dbo].[Customers] WHERE [Name] = 'LEXCORP'), 
 	(SELECT [Id] FROM [dbo].[Integrations] WHERE [Name] = 'LEX2DOOM'), 
 	'Using Postman, access https://api.LDoom.Net, get a http 404 error.  Customer states that datacenter should be on-line and there is no issue with the LexCorp network', 
@@ -187,6 +187,6 @@ INSERT INTO [dbo].[Tickets]([Name], [Description], [CustomerId], [IntegrationId]
 	'JLA Feed has a log entry referencing a JLA operation at the time that the customer''s API went down.  Reasonably suspect that the other server is no longer operational.', 1);
 
 INSERT INTO [dbo].[TicketNotes]([Name], [Description], [TicketId], [Deleted])
-	VALUES(0, 'Default Note', 0, 1);
+	VALUES('DEFAULT_NOTE', 'Default Note', 0, 1);
 INSERT INTO [dbo].[TicketNotes]([Name], [Description], [TicketId], [Note], [CreateTime])
-	VALUES('1', 'Customer Contact Warning', 1, 'This guy is a jerk.  Redirect to technical contact ASAP.', DATEADD(MONTH, -5, GETDATE()));
+	VALUES('1_1', 'Customer Contact Warning', 1, 'This guy is a jerk.  Redirect to technical contact ASAP.', DATEADD(MONTH, -5, GETDATE()));
