@@ -18,6 +18,12 @@ public class PortalEntity
     [Required]
     public bool Deleted { get; set; }
 
+    /// <summary>
+    /// Optimistic concurrency token, maintained by SQL Server. The only meaningful value a
+    /// caller can supply is the one it was handed on read - see GenericRepository.Update.
+    /// </summary>
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     public PortalEntity()
     {
         Id = -1;

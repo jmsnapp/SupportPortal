@@ -76,6 +76,13 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
 
     public void Update(TEntity entity)
     {
+        // entity.RowVersion is what the CALLER believed the row was at, not what the database
+        // currently holds. Capture it before SetValues, then promote it to the entry's
+        // OriginalValue: that is the value EF puts in the UPDATE's WHERE clause. Without this
+        // the token is compared against the row we just read, so it always matches and the
+        // concurrency check silently never fires.
+        byte[] expected = entity.RowVersion;
+
         // If this key is already tracked (e.g. the controller's existence check loaded it),
         // copy onto the tracked instance instead of attaching a second one.
         var tracked = _context.ChangeTracker
@@ -85,10 +92,19 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         if (tracked is not null)
         {
             tracked.CurrentValues.SetValues(entity);
+
+            // No token supplied (Delete/Restore, or a caller that predates this) -> no check.
+            if (expected is { Length: > 0 })
+                tracked.Property(e => e.RowVersion).OriginalValue = expected;
+
             return;
         }
 
-        _context.Entry(entity).State = EntityState.Modified;
+        var entry = _context.Entry(entity);
+        entry.State = EntityState.Modified;
+
+        if (expected is { Length: > 0 })
+            entry.Property(e => e.RowVersion).OriginalValue = expected;
 
     }
 

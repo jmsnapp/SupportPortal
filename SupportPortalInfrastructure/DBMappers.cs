@@ -354,6 +354,7 @@ namespace SupportPortalInfrastructure
             obj.Name = entity.Name;
             obj.Description = entity.Description;
             obj.Deleted = entity.Deleted;
+            obj.RowVersion = entity.RowVersion;
 
         }
 
@@ -364,6 +365,7 @@ namespace SupportPortalInfrastructure
             entity.Name = obj.Name;
             entity.Description = obj.Description;
             entity.Deleted = obj.Deleted;
+            entity.RowVersion = obj.RowVersion;
 
         }
 

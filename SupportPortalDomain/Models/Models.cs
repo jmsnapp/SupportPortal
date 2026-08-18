@@ -16,6 +16,12 @@ public class PortalObject
     [Required]
     public bool Deleted { get; set; }
 
+    /// <summary>
+    /// Concurrency token. Send back whatever a read handed you, unchanged; an update that
+    /// carries a stale token is rejected with 409 instead of silently overwriting.
+    /// </summary>
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     public PortalObject()
     {
         Id = 0;

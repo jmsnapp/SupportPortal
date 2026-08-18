@@ -4,6 +4,7 @@
     [Name] NVARCHAR(63) NOT NULL, 
     [Description] NVARCHAR(255) NOT NULL DEFAULT '', 
     [Deleted] BIT NOT NULL DEFAULT 0, 
+    [RowVersion] ROWVERSION NOT NULL, 
     [IntegrationId] BIGINT NOT NULL , 
     [ErrorMessage] NVARCHAR(1027) NOT NULL DEFAULT '', 
     [StackTrace] NVARCHAR(MAX) NOT NULL DEFAULT '', 

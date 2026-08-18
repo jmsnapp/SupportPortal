@@ -29,6 +29,7 @@ namespace SupportPortalInfrastructure.Data.Configurations
             builder.Property(e => e.Name).HasMaxLength(NameLength).IsRequired();
             builder.Property(e => e.Description).HasMaxLength(DescriptionLength).IsRequired();
             builder.Property(e => e.Deleted).IsRequired();
+            builder.Property(e => e.RowVersion).IsRowVersion();
 
             if (HasUniqueName)
                 builder.HasIndex(e => e.Name).IsUnique().HasDatabaseName($"AK_{TableName}_Name");

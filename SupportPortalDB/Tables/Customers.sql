@@ -4,6 +4,7 @@
     [Name] NVARCHAR(63) NOT NULL, 
     [Description] NVARCHAR(255) NOT NULL DEFAULT '', 
     [Deleted] BIT NOT NULL DEFAULT 0, 
+    [RowVersion] ROWVERSION NOT NULL, 
     [IndustryId] BIGINT NOT NULL DEFAULT 0, 
     [PrimaryContactName] NVARCHAR(63) NOT NULL, 
     [PrimaryContactEmail] NVARCHAR(63) NOT NULL, 
