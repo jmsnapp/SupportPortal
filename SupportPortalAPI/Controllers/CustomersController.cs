@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SupportPortalDomain;
 using SupportPortalDomain.Models;
 using SupportPortalInfrastructure;
+using SupportPortalInfrastructure.Configuration;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
 using System.Threading;
@@ -9,16 +11,19 @@ using System.Threading.Tasks;
 
 namespace SupportPortalAPI.Controllers
 {
-    public class CustomersController : GenericController<CustomerEntity, Customer>
+    public class CustomersController : GenericController<Customer, CustomerListItem, CustomerEntity>
     {
-        public CustomersController(IGenericRepository<CustomerEntity> repo) : base(repo)
+        public CustomersController(IGenericRepository<Customer, CustomerListItem, CustomerEntity> repo, IOptions<PaginationOptions>? options = null) : base(repo, options)
         { }
 
-        protected override Customer MapEntityToModel(CustomerEntity entity)
+        // GET api/[controller]/by-name/{name}
+        [HttpGet("by-name/{name}")]
+        public virtual async Task<IActionResult> GetByName(string name, CancellationToken ct = default)
         {
-            // Use existing Mapper method that wires in industry repository
-            var model = DBMapper.MapCustomerEntity2Customer(entity);
-            return model;
+            var model = await _repo.GetByNameAsync(name, ct);
+            if (model == null) return NotFound();
+
+            return Ok(model);
 
         }
 

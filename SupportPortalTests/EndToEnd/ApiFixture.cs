@@ -60,7 +60,7 @@ internal static class Api
         using var scope = Factory.Services.CreateScope();
         var ctx = scope.ServiceProvider.GetRequiredService<SupportPortalDBContext>();
 
-        await ctx.Tickets.IgnoreQueryFilters().Where(x => x.Name.StartsWith(namePrefix)).ExecuteDeleteAsync();
+        await ctx.Tickets.IgnoreQueryFilters().Where(x => x.Description.StartsWith(namePrefix)).ExecuteDeleteAsync();
         await ctx.Severities.Where(x => x.Name.StartsWith(namePrefix)).ExecuteDeleteAsync();
         await ctx.Industries.Where(x => x.Name.StartsWith(namePrefix)).ExecuteDeleteAsync();
     }

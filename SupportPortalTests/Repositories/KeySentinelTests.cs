@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SupportPortalInfrastructure.Data;
 using SupportPortalInfrastructure.Entities;
+using Microsoft.Extensions.Configuration;
+using SupportPortalTests.EndToEnd;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SupportPortalTests.Repositories
 {
@@ -20,9 +23,13 @@ namespace SupportPortalTests.Repositories
         /// <summary>Model-only; these never open a connection.</summary>
         private static SupportPortalDBContext CreateContext()
         {
+            // Build options using the API's configuration so the model is identical to runtime
+            var config = Api.Factory.Services.GetRequiredService<IConfiguration>();
+            var conn = config.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Missing DefaultConnection");
+
             DbContextOptions<SupportPortalDBContext> options =
                 new DbContextOptionsBuilder<SupportPortalDBContext>()
-                    .UseSqlServer("Server=(local);Database=SupportPortalDB;Trusted_Connection=True;")
+                    .UseSqlServer(conn)
                     .Options;
 
             return new SupportPortalDBContext(options);

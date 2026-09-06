@@ -1,39 +1,42 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SupportPortalDomain.Models;
-using SupportPortalInfrastructure;
-using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.Extensions.Options;
+using SupportPortalDomain.Models;
+using SupportPortalInfrastructure;
+using SupportPortalInfrastructure.Configuration;
+using SupportPortalInfrastructure.Entities;
+using SupportPortalInfrastructure.Repositories;
 
 namespace SupportPortalAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public abstract class GenericController<TEntity, TModel> : ControllerBase
+    public abstract class GenericController<TModel, TModel2, TEntity> : ControllerBase
         where TEntity : PortalEntity, new()
+        where TModel2 : PortalObject, new()
         where TModel : PortalObject, new()
     {
-        protected readonly IGenericRepository<TEntity> _repo;
+        protected readonly IGenericRepository<TModel, TModel2, TEntity> _repo;
 
-        protected const int DefaultPageSize = 50;
+        protected const int DEFAULT_PAGE_SIZE = 50;
 
-        // MaxPageSize removed from controller; repository enforces the limit.
+        private int _maxPageSize = 200;
 
-        protected GenericController(IGenericRepository<TEntity> repo)
+        private readonly PaginationOptions _options;
+
+        protected GenericController(IGenericRepository<TModel, TModel2, TEntity> repo, Microsoft.Extensions.Options.IOptions<PaginationOptions>? options = null)
         {
             _repo = repo;
+            // Allow callers (tests) to omit options. Provide a sane default when missing.
+            _options = (options ?? Microsoft.Extensions.Options.Options.Create(new PaginationOptions())).Value;
 
         }
-
-        // GET api/[controller]?page=1&pageSize=50&includeDeleted=false
-        [HttpGet]
-        public virtual Task<ActionResult<PagedResult<TModel>>> GetPage([FromQuery] int page = 1, [FromQuery] int pageSize = DefaultPageSize, [FromQuery] bool includeDeleted = false, CancellationToken ct = default)
-            => Collection(page, pageSize, includeDeleted, ct);
 
         // GET api/[controller]/{id:long}
         [HttpGet("{id:long}")]
@@ -41,32 +44,37 @@ namespace SupportPortalAPI.Controllers
         {
             var entity = await _repo.GetByIdAsync(id, ct);
             if (entity == null) return NotFound();
-            var model = MapEntityToModel(entity);
-            return Ok(model);
-
-        }
-
-        // GET api/[controller]/by-name/{name}
-        [HttpGet("by-name/{name}")]
-        public virtual async Task<IActionResult> GetByName(string name, CancellationToken ct = default)
-        {
-            var entity = await _repo.GetByNameAsync(name, ct);
-            if (entity == null) return NotFound();
-
-            var model = MapEntityToModel(entity);
-            return Ok(model);
+            return Ok(entity);
 
         }
 
         // GET api/[controller]/getall?page=1&pageSize=50
         [HttpGet("getall")]
-        public virtual Task<ActionResult<PagedResult<TModel>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = DefaultPageSize, CancellationToken ct = default)
-            => Collection(page, pageSize, includeDeleted: true, ct);
+        public virtual async Task<ActionResult<PagedResult<TModel2>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = DEFAULT_PAGE_SIZE, CancellationToken ct = default)
+        {
+            if (pageSize == DEFAULT_PAGE_SIZE) pageSize = _options.DefaultPageSize;
+
+            List<TModel2> lstResult = await _repo.GetAllAsync(ct);
+
+            ActionResult<PagedResult<TModel2>> lstPageResult = Collection(lstResult, page, pageSize, ct);
+
+            return lstPageResult;
+
+        }
 
         // GET api/[controller]/active?page=1&pageSize=50
         [HttpGet("active")]
-        public virtual Task<ActionResult<PagedResult<TModel>>> GetAllActive([FromQuery] int page = 1, [FromQuery] int pageSize = DefaultPageSize, CancellationToken ct = default)
-            => Collection(page, pageSize, includeDeleted: false, ct);
+        public virtual async Task<ActionResult<PagedResult<TModel2>>> GetAllActive([FromQuery] int page = 1, [FromQuery] int pageSize = DEFAULT_PAGE_SIZE, CancellationToken ct = default)
+        {
+            if (pageSize == DEFAULT_PAGE_SIZE) pageSize = _options.DefaultPageSize;
+
+            List<TModel2> lstResult = await _repo.GetAllActiveAsync(ct);
+
+            ActionResult<PagedResult<TModel2>> lstPageResult = Collection(lstResult, page, pageSize, ct);
+
+            return lstPageResult;
+
+        }
 
         // PUT api/[controller]/{id:long}
         //
@@ -79,16 +87,21 @@ namespace SupportPortalAPI.Controllers
         {
             if (updated == null || id != updated.Id) return BadRequest();
 
-            TEntity? existing = await _repo.GetByIdAsync(id, ct);
+            TModel? existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return NotFound();
 
-            ConvertEntityFromObject(updated, existing);
+            TEntity entityUpdate = new TEntity();
 
-            _repo.Update(existing);
-            await _repo.SaveChangesAsync(ct);
+            MapModelToEntity(updated, entityUpdate);
 
-            // SaveChanges refreshes the store-generated token on the tracked entity.
-            return MapEntityToModel(existing);
+            await _repo.UpdateAsync(entityUpdate, ct);
+
+            // Re-read through the repository: the write reissues RowVersion, and it is that
+            // new token the caller needs in hand to make a second save without re-reading.
+            TModel? saved = await _repo.GetByIdAsync(id, ct);
+            if (saved == null) return NotFound();
+
+            return saved;
 
         }
 
@@ -102,15 +115,14 @@ namespace SupportPortalAPI.Controllers
 
             TEntity entity = ConvertEntityFromObject(create);
 
-            await _repo.AddAsync(entity, ct);
-            await _repo.SaveChangesAsync(ct);
+            Int64 intReturn = await _repo.CreateAsync(entity, ct);
 
             // Re-read through the repository so WithDetail() populates the navigations
             // the response mapper needs.
-            TEntity saved = await _repo.GetByIdAsync(entity.Id, ct) ?? entity;
+            TModel? saved = await _repo.GetByIdAsync(intReturn, ct);
+            if (saved == null) return NotFound();
 
-            var model = MapEntityToModel(saved);
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, model);
+            return CreatedAtAction(nameof(GetById), new { id = saved.Id }, saved);
 
         }
 
@@ -123,7 +135,7 @@ namespace SupportPortalAPI.Controllers
         [HttpDelete("{id:long}")]
         public virtual async Task<IActionResult> Delete(Int64 id, CancellationToken ct = default)
         {
-            TEntity? existing = await _repo.GetByIdAsync(id, ct);
+            TModel? existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return NotFound();
 
             IActionResult? malformed = ApplyIfMatch(existing);
@@ -131,8 +143,12 @@ namespace SupportPortalAPI.Controllers
 
             existing.Deleted = true;
 
-            _repo.Update(existing);
-            await _repo.SaveChangesAsync(ct);
+            TEntity existingEntity = new TEntity();
+
+            MapModelToEntity(existing, existingEntity);
+
+            await _repo.UpdateAsync(existingEntity, ct);
+
             return NoContent();
 
         }
@@ -143,7 +159,7 @@ namespace SupportPortalAPI.Controllers
         [HttpPut("restore/{id:long}")]
         public virtual async Task<IActionResult> Restore(Int64 id, CancellationToken ct = default)
         {
-            TEntity? existing = await _repo.GetByIdAsync(id, ct);
+            TModel? existing = await _repo.GetByIdAsync(id, ct);
             if (existing == null) return NotFound();
 
             IActionResult? malformed = ApplyIfMatch(existing);
@@ -151,8 +167,12 @@ namespace SupportPortalAPI.Controllers
 
             existing.Deleted = false;
 
-            _repo.Update(existing);
-            await _repo.SaveChangesAsync(ct);
+            TEntity existingEntity = new TEntity();
+
+            MapModelToEntity(existing, existingEntity);
+
+            await _repo.UpdateAsync(existingEntity, ct);
+
             return NoContent();
 
         }
@@ -160,19 +180,27 @@ namespace SupportPortalAPI.Controllers
         /// <summary>
         /// Applies the optional If-Match precondition to an already-loaded entity.
         /// <para>
-        /// Stamps the caller's expected RowVersion onto the entity; GenericRepository.Update then
-        /// promotes it to the UPDATE's OriginalValue, so a superseded token is refused by the
-        /// database instead of quietly overwriting whoever got there first. Returns null when the
+        /// Stamps the caller's expected RowVersion onto the entity; the update procedure then carries
+        /// it in the UPDATE's WHERE clause, so a superseded token matches no row and is refused by
+        /// the database instead of quietly overwriting whoever got there first. Returns null when the
         /// request may proceed, or a 400 when the header is present but unreadable.
         /// </para>
         /// </summary>
-        private IActionResult? ApplyIfMatch(TEntity existing)
+        private IActionResult? ApplyIfMatch(TModel existing)
         {
             string raw = Request.Headers.IfMatch.ToString();
 
-            // Absent means no precondition. "*" means "whatever version exists", and the row is
-            // already loaded, so that is satisfied without touching the token.
-            if (string.IsNullOrWhiteSpace(raw) || raw.Trim() == "*") return null;
+            // Absent means no precondition; "*" means "whatever version exists", and the row is
+            // already loaded, so that is satisfied. Both clear the token the read brought back:
+            // the entity is on its way into the update procedure, which guards on whatever token
+            // it is handed, and an unasked-for precondition would turn an opt-in feature into a
+            // mandatory one.
+
+            if (string.IsNullOrWhiteSpace(raw) || raw.Trim() == "*")
+            {
+                existing.RowVersion = Array.Empty<byte>();
+                return null;
+            }
 
             string tag = raw.Trim();
             if (tag.StartsWith("W/", StringComparison.Ordinal)) tag = tag.Substring(2);
@@ -191,22 +219,6 @@ namespace SupportPortalAPI.Controllers
 
         }
 
-        protected virtual TModel MapEntityToModel(TEntity entity)
-        {
-            // Default shallow mapping -> map PortalEntity fields into TModel
-            var model = new TModel();
-            DBMapper.MapPortalEntity2Object(entity, model);
-            return model;
-
-        }
-
-        protected virtual IEnumerable<TModel> MapEntitiesToModels(IEnumerable<TEntity> entities)
-        {
-            var results = entities.Select(e => MapEntityToModel(e));
-            return results;
-
-        }
-
         // GenericController — default shallow mapping
         protected virtual void MapModelToEntity(TModel model, TEntity entity) =>
             DBMapper.MapPortalObject2Entity(model, entity);
@@ -219,20 +231,25 @@ namespace SupportPortalAPI.Controllers
 
         }
 
-        private async Task<ActionResult<PagedResult<TModel>>> Collection(int page, int pageSize, bool includeDeleted, CancellationToken ct)
+        public ActionResult<PagedResult<TModel2>> Collection(List<TModel2> lstItems, int page, int pageSize, CancellationToken ct)
         {
+            _maxPageSize = _options.MaxPageSize;
             page = Math.Max(page, 1);
-            // Ensure pageSize is at least 1; repository will enforce the upper bound.
+            // Ensure pageSize is at least 1
             pageSize = Math.Max(pageSize, 1);
 
-            var (entities, total) = await _repo.GetPageAsync((page - 1) * pageSize, pageSize, includeDeleted, ct);
+            List<TModel2> items = lstItems
+                                .OrderBy(x => x.Id)
+                                .Skip(Math.Max((page - 1) * pageSize, 0))
+                                .Take(Math.Clamp(pageSize, 1, _maxPageSize))
+                                .ToList();
 
-            return new PagedResult<TModel>
+            return new PagedResult<TModel2>
             {
-                Items = MapEntitiesToModels(entities).ToList(),
+                Items = items,
                 Page = page,
                 PageSize = pageSize,
-                TotalCount = total,
+                TotalCount = lstItems.Count,
             };
 
         }

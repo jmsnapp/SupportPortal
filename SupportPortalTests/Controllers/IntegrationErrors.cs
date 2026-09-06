@@ -19,6 +19,7 @@ namespace SupportPortalTests.Controllers;
 [TestClass]
 public class IntegrationErrorsControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -55,9 +56,9 @@ public class IntegrationErrorsControllerTests
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        IntegrationErrorEntity entity = new IntegrationErrorEntity { Id = 1L, Name = "Open" };
+        IntegrationError entity = new IntegrationError { Id = 1L, Description = "Open", Deleted = false };
 
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
@@ -68,15 +69,15 @@ public class IntegrationErrorsControllerTests
         var model = result!.Value as IntegrationError;
         Assert.IsNotNull(model);
         Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual("Open", model.Description);
 
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((IntegrationErrorEntity?)null);
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((IntegrationError?)null);
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
@@ -87,38 +88,18 @@ public class IntegrationErrorsControllerTests
     }
 
     [TestMethod]
-    public async Task GetByName_ReturnsOk_WhenFound()
-    {
-        IntegrationErrorEntity entity = new IntegrationErrorEntity { Id = 2L, Name = "Closed" };
-
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
-        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
-
-        IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
-
-        var result = await controller.GetByName("Closed") as OkObjectResult;
-
-        Assert.IsNotNull(result);
-        var model = result!.Value as IntegrationError;
-        Assert.IsNotNull(model);
-        Assert.AreEqual(2L, model.Id);
-        Assert.AreEqual("Closed", model.Name);
-
-    }
-
-    [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        List<IntegrationErrorEntity> entities = new List<IntegrationErrorEntity>
+        List<IntegrationError> entities = new List<IntegrationError>
         {
-            new IntegrationErrorEntity { Id = 1L, Name = "A" },
-            new IntegrationErrorEntity { Id = 2L, Name = "B" },
+            new IntegrationError { Id = 1L, Description = "A", Deleted = false },
+            new IntegrationError { Id = 2L, Description = "B", Deleted = false },
         };
 
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<IntegrationErrorEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((List<IntegrationError>)entities));
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
@@ -129,23 +110,23 @@ public class IntegrationErrorsControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        List<IntegrationErrorEntity> entities = new List<IntegrationErrorEntity>
+        List<IntegrationError> entities = new List<IntegrationError>
         {
-            new IntegrationErrorEntity { Id = 3L, Name = "Active1" },
-            new IntegrationErrorEntity { Id = 4L, Name = "Active2" },
+            new IntegrationError { Id = 3L, Description = "Active1", Deleted = false },
+            new IntegrationError { Id = 4L, Description = "Active2", Deleted = false },
         };
 
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<IntegrationErrorEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((List<IntegrationError>)entities));
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
@@ -156,22 +137,20 @@ public class IntegrationErrorsControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
         var badResult1 = await controller.Update(1, null as IntegrationError);
         Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        var entity = new IntegrationErrorEntity { Id = 2L, Name = "X" };
-        IntegrationError updated = new IntegrationError();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        var updated = new IntegrationError { Id = 2L, Description = "B", Deleted = false };
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
@@ -180,14 +159,12 @@ public class IntegrationErrorsControllerTests
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((IntegrationErrorEntity?)null);
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((IntegrationError?)null);
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
-        var entity = new IntegrationErrorEntity { Id = 5L, Name = "Z" };
-        IntegrationError updated = new IntegrationError();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        var updated = new IntegrationError { Id = 5L, Description = "Z" };
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -197,32 +174,28 @@ public class IntegrationErrorsControllerTests
     [TestMethod]
     public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        IntegrationErrorEntity existing = new IntegrationErrorEntity { Id = 6L, Name = "Before" };
+        IntegrationError existing = new IntegrationError { Id = 6L, Description = "Before" };
 
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<IntegrationErrorEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<IntegrationErrorEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
-        IntegrationErrorEntity entity = new IntegrationErrorEntity { Id = 6L, Name = "After" };
-        IntegrationError updated = new IntegrationError();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        IntegrationError updated = new IntegrationError { Id = 6L, Description = "After" };
         var result = await controller.Update(6L, updated);
 
-        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+        Assert.IsNull(result.Result, "PUT should answer with the ID, not a bare status");
 
         Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
-        repoMock.Verify(r => r.Update(It.IsAny<IntegrationErrorEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<IntegrationErrorEntity>(), It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
         var result = await controller.Create(null as IntegrationError);
@@ -234,21 +207,23 @@ public class IntegrationErrorsControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        IntegrationErrorEntity toCreate = new IntegrationErrorEntity { Id = 7L, Name = "New" };
+        IntegrationError toCreate = new IntegrationError { Id = 7L, Description = "New" };
 
-        Mock<IGenericRepository<IntegrationErrorEntity>> repoMock = new Mock<IGenericRepository<IntegrationErrorEntity>>();
-        repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        IntegrationError saved = new IntegrationError { Id = 7L, Description = "New" };
+
+        var repoMock = new Mock<IGenericRepository<IntegrationError, IntegrationError, IntegrationErrorEntity>>();
+        // Moq compares a literal argument with Equals, which IntegrationErrorEntity does not
+        // override, so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<IntegrationErrorEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(7L);
+        repoMock.Setup(r => r.GetByIdAsync(7L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
 
         IntegrationErrorsController controller = new IntegrationErrorsController(repoMock.Object);
 
-        IntegrationError created = new IntegrationError();
-        DBMapper.MapPortalEntity2Object(toCreate, created);
-        var result = await controller.Create(created) as CreatedAtActionResult;
+        var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<IntegrationErrorEntity, IntegrationError>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<IntegrationError, IntegrationErrorListItem, IntegrationErrorEntity>.GetById), result!.ActionName);
         var model = result.Value as IntegrationError;
         Assert.IsNotNull(model);
         Assert.AreEqual(7L, model.Id);

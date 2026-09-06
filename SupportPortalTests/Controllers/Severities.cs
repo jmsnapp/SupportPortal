@@ -19,6 +19,7 @@ namespace SupportPortalTests.Controllers;
 [TestClass]
 public class SeveritiesControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -55,9 +56,9 @@ public class SeveritiesControllerTests
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        SeverityEntity entity = new SeverityEntity { Id = 1L, Name = "Open" };
+        Severity entity = new Severity { Id = 1L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
@@ -68,15 +69,15 @@ public class SeveritiesControllerTests
         var model = result!.Value as Severity;
         Assert.IsNotNull(model);
         Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual("DEFAULT", model.Name);
 
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((SeverityEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((Severity?)null);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
@@ -89,36 +90,37 @@ public class SeveritiesControllerTests
     [TestMethod]
     public async Task GetByName_ReturnsOk_WhenFound()
     {
-        SeverityEntity entity = new SeverityEntity { Id = 2L, Name = "Closed" };
+        Severity entity = new Severity { Id = 2L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
-        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
+        repoMock.Setup(r => r.GetByNameAsync("DEFAULT", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
-        var result = await controller.GetByName("Closed") as OkObjectResult;
+        var result = await controller.GetByName("DEFAULT") as OkObjectResult;
 
         Assert.IsNotNull(result);
         var model = result!.Value as Severity;
         Assert.IsNotNull(model);
-        Assert.AreEqual(2, model.Id);
-        Assert.AreEqual("Closed", model.Name);
+        Assert.AreEqual(2L, model.Id);
+        Assert.AreEqual("DEFAULT", model.Name);
 
     }
 
     [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        List<SeverityEntity> entities = new List<SeverityEntity>
-        {
-            new SeverityEntity { Id = 1L, Name = "A" },
-            new SeverityEntity { Id = 2L, Name = "B" },
-        };
+        Severity entity1 = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Severity entity2 = new Severity { Id = 1L, Name = "LOW", Description = "Low", Deleted = false };
 
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
+        List<Severity> entities = new List<Severity>();
+        entities.Add(entity1);
+        entities.Add(entity2);
+
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<SeverityEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
@@ -129,23 +131,24 @@ public class SeveritiesControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        List<SeverityEntity> entities = new List<SeverityEntity>
-        {
-            new SeverityEntity { Id = 3L, Name = "Active1" },
-            new SeverityEntity { Id = 4L, Name = "Active2" },
-        };
+        Severity entity1 = new Severity { Id = 1L, Name = "LOW", Description = "Low", Deleted = false };
+        Severity entity2 = new Severity { Id = 2L, Name = "MEDIUM", Description = "Medium", Deleted = false };
 
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
+        List<Severity> entities = new List<Severity>();
+        entities.Add(entity1);
+        entities.Add(entity2);
+
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<SeverityEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
@@ -156,22 +159,20 @@ public class SeveritiesControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as Severity);
         Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        SeverityEntity entity = new SeverityEntity { Id = 2L, Name = "X" };
-        Severity updated = new Severity();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        Severity updated = new Severity { Id = 2L, Name = "MEDIUM", Description = "Medium", Deleted = false };
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
@@ -180,14 +181,12 @@ public class SeveritiesControllerTests
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((SeverityEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((Severity?)null);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
-        SeverityEntity entity = new SeverityEntity { Id = 5L, Name = "Z" };
-        Severity updated = new Severity();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        Severity updated = new Severity { Id = 5L, Name = "TEST", Description = "TEST", Deleted = false };
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -197,32 +196,28 @@ public class SeveritiesControllerTests
     [TestMethod]
     public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        SeverityEntity existing = new SeverityEntity { Id = 6L, Name = "Before" };
+        Severity existing = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<SeverityEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(0L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<SeverityEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
-        SeverityEntity entity = new SeverityEntity { Id = 6L, Name = "After" };
-        Severity updated = new Severity();
-        DBMapper.MapPortalEntity2Object(entity, updated);
-        var result = await controller.Update(6L, updated);
+        Severity updated = new Severity { Id = 0L, Name = "TEST", Description = "Default", Deleted = true };
+        var result = await controller.Update(0L, updated);
 
-        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+        Assert.IsNull(result.Result, "PUT should answer with the ID, not a bare status");
 
         Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
-        repoMock.Verify(r => r.Update(It.IsAny<SeverityEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<SeverityEntity>(), It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
         var result = await controller.Create(null as Severity);
@@ -234,21 +229,23 @@ public class SeveritiesControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        SeverityEntity toCreate = new SeverityEntity { Id = 7L, Name = "New" };
+        Severity toCreate = new Severity { Id = 5L, Name = "TEST", Description = "TEST", Deleted = false };
 
-        Mock<IGenericRepository<SeverityEntity>> repoMock = new Mock<IGenericRepository<SeverityEntity>>();
-        repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        Severity saved = new Severity { Id = 7L, Name = "TEST", Description = "TEST", Deleted = false };
+
+        var repoMock = new Mock<IGenericRepository<Severity, Severity, SeverityEntity>>();
+        // Moq compares a literal argument with Equals, which SeverityEntity does not override,
+        // so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<SeverityEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(7L);
+        repoMock.Setup(r => r.GetByIdAsync(7L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
 
         SeveritiesController controller = new SeveritiesController(repoMock.Object);
 
-        Severity created = new Severity();
-        DBMapper.MapPortalEntity2Object(toCreate, created);
-        var result = await controller.Create(created) as CreatedAtActionResult;
+        var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<SeverityEntity, Severity>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<Severity, Severity, SeverityEntity>.GetById), result!.ActionName);
         var model = result.Value as Severity;
         Assert.IsNotNull(model);
         Assert.AreEqual(7L, model.Id);

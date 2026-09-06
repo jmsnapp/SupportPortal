@@ -10,7 +10,7 @@
     [PrimaryContactEmail] NVARCHAR(63) NOT NULL, 
     [TechnicalContactName] NVARCHAR(63) NOT NULL, 
     [TechnicalContactEmail] NVARCHAR(63) NOT NULL, 
-    [CreatedDate] DATETIME NOT NULL DEFAULT '1/1/1900 00:00:00.000', 
+    [CreatedDate] DATETIME NOT NULL DEFAULT 0, 
     CONSTRAINT [FK_Customers_Industries] FOREIGN KEY ([IndustryId]) REFERENCES [dbo].[Industries]([Id]), 
     CONSTRAINT [AK_Customers_Name] UNIQUE ([Name])
 )

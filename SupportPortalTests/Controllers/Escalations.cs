@@ -19,6 +19,7 @@ namespace SupportPortalTests.Controllers;
 [TestClass]
 public class EscalationsControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -52,9 +53,9 @@ public class EscalationsControllerTests
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        var entity = new EscalationEntity { Id = 1L, Name = "Open" };
+        var entity = new Escalation { Id = 1L, Description = "Open" };
 
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         var controller = new EscalationsController(repoMock.Object);
@@ -65,54 +66,36 @@ public class EscalationsControllerTests
         var model = result!.Value as Escalation;
         Assert.IsNotNull(model);
         Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual("Open", model.Description);
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((EscalationEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((Escalation?)null);
 
         var controller = new EscalationsController(repoMock.Object);
 
         var result = await controller.GetById(99L);
 
         Assert.IsInstanceOfType(result, typeof(NotFoundResult));
-    }
 
-    [TestMethod]
-    public async Task GetByName_ReturnsOk_WhenFound()
-    {
-        var entity = new EscalationEntity { Id = 2L, Name = "Closed" };
-
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
-        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
-
-        var controller = new EscalationsController(repoMock.Object);
-
-        var result = await controller.GetByName("Closed") as OkObjectResult;
-
-        Assert.IsNotNull(result);
-        var model = result!.Value as Escalation;
-        Assert.IsNotNull(model);
-        Assert.AreEqual(2, model.Id);
-        Assert.AreEqual("Closed", model.Name);
     }
 
     [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        var entities = new List<EscalationEntity>
+        var entities = new List<Escalation>
         {
-            new EscalationEntity { Id = 1L, Name = "A" },
-            new EscalationEntity { Id = 2L, Name = "B" },
+            new Escalation { Id = 1L, Description = "A" },
+            new Escalation { Id = 2L, Description = "B" },
         };
 
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<EscalationEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((List<Escalation>)entities));
 
         EscalationsController controller = new EscalationsController(repoMock.Object);
 
@@ -123,23 +106,23 @@ public class EscalationsControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        var entities = new List<EscalationEntity>
+        var entities = new List<Escalation>
         {
-            new EscalationEntity { Id = 3L, Name = "Active1" },
-            new EscalationEntity { Id = 4L, Name = "Active2" },
+            new Escalation { Id = 3L, Description = "Active1" },
+            new Escalation { Id = 4L, Description = "Active2" },
         };
 
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<EscalationEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((List<Escalation>)entities));
 
         EscalationsController controller = new EscalationsController(repoMock.Object);
 
@@ -150,35 +133,34 @@ public class EscalationsControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
         var controller = new EscalationsController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as Escalation);
         Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        var entity = new EscalationEntity { Id = 2L, Name = "X" };
-        Escalation updated = DBMapper.MapEscalationEntity2Escalation(entity);
+        var updated = new Escalation { Id = 0L, Description = "X", Deleted = true };
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
+
     }
 
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5, It.IsAny<CancellationToken>())).ReturnsAsync((EscalationEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((Escalation?)null);
 
         var controller = new EscalationsController(repoMock.Object);
 
-        var entity = new EscalationEntity { Id = 5L, Name = "Z" };
-        Escalation updated = DBMapper.MapEscalationEntity2Escalation(entity);
+        var updated = new Escalation { Id = 5L, Description = "Z" };
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -187,30 +169,28 @@ public class EscalationsControllerTests
     [TestMethod]
     public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        var existing = new EscalationEntity { Id = 6L, Name = "Before" };
+        var existing = new Escalation { Id = 6L, Description = "Before", Deleted = true };
 
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<EscalationEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<EscalationEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
         var controller = new EscalationsController(repoMock.Object);
 
-        var entity = new EscalationEntity { Id = 6L, Name = "After" };
-        Escalation updated = DBMapper.MapEscalationEntity2Escalation(entity);
+        var updated = new Escalation { Id = 6L, Description = "After", Deleted = true };
         var result = await controller.Update(6L, updated);
 
-        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+        Assert.IsNull(result.Result, "PUT should answer with the ID, not a bare status");
 
         Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
-        repoMock.Verify(r => r.Update(It.IsAny<EscalationEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<EscalationEntity>(), It.IsAny<CancellationToken>()), Times.Once);
+
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
         var controller = new EscalationsController(repoMock.Object);
 
         var result = await controller.Create(null as Escalation);
@@ -221,22 +201,27 @@ public class EscalationsControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        var entity = new EscalationEntity { Id = 7L, Name = "New" };
-        Escalation toCreate = DBMapper.MapEscalationEntity2Escalation(entity);
+        var toCreate = new Escalation { Id = -1L, Description = "New", Deleted = false };
 
-        var repoMock = new Mock<IGenericRepository<EscalationEntity>>();
-        repoMock.Setup(r => r.AddAsync(entity, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        var saved = new Escalation { Id = 7L, Description = "New", Deleted = false };
+
+        var repoMock = new Mock<IGenericRepository<Escalation, Escalation, EscalationEntity>>();
+        // Moq compares a literal argument with Equals, which EscalationEntity does not override,
+        // so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<EscalationEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(7L);
+        repoMock.Setup(r => r.GetByIdAsync(7L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
 
         var controller = new EscalationsController(repoMock.Object);
 
         var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<EscalationEntity, Escalation>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<Escalation, Escalation, EscalationEntity>.GetById), result!.ActionName);
         var model = result.Value as Escalation;
         Assert.IsNotNull(model);
-        Assert.AreEqual(7, model.Id);
+        Assert.AreEqual(7L, model.Id);
+
     }
+
 }

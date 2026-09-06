@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -8,9 +9,6 @@ public class PortalEntity
 {
     [Key]
     public Int64 Id { get; set; }
-
-    [StringLength(63), Required]
-    public string Name { get; set; }
 
     [StringLength(255), Required]
     public virtual string Description { get; set; }
@@ -27,7 +25,6 @@ public class PortalEntity
     public PortalEntity()
     {
         Id = -1;
-        Name = string.Empty;
         Description = string.Empty;
         Deleted = false;
 
@@ -35,7 +32,20 @@ public class PortalEntity
 
 }
 
-public class CustomerEntity : PortalEntity
+public class PortalLookupEntity : PortalEntity
+{
+    [StringLength(63), Required]
+    public string Name { get; set; }
+
+    public PortalLookupEntity() 
+    { 
+        Name = string.Empty;
+
+    }
+
+}
+
+public class CustomerEntity : PortalLookupEntity
 {
     [Required]
     public Int64 IndustryId { get; set; }
@@ -55,11 +65,43 @@ public class CustomerEntity : PortalEntity
     [Required]
     public DateTime CreatedDate { get; set; }
 
-    public IndustryEntity? Industry { get; set;  }
-
     public CustomerEntity()
     {
         IndustryId = 0;
+        PrimaryContactName = string.Empty;
+        PrimaryContactEmail = string.Empty;
+        TechnicalContactName = string.Empty;
+        TechnicalContactEmail = string.Empty;
+        CreatedDate = DateTime.UtcNow;
+
+    }
+
+}
+
+public class CustomerListEntity : PortalLookupEntity
+{
+    [StringLength(63)]
+    public string PrimaryContactName { get; set; }
+
+    [StringLength(63), EmailAddress]
+    public string PrimaryContactEmail { get; set; }
+
+    [StringLength(63)]
+    public string TechnicalContactName { get; set; }
+
+    [StringLength(63), EmailAddress]
+    public string TechnicalContactEmail { get; set; }
+
+    public DateTime CreatedDate { get; set; }
+
+    public Int64 IndustryId { get; set; }
+
+    public string IndustryDescription { get; set; }
+
+    public CustomerListEntity()
+    {
+        IndustryId = 0;
+        IndustryDescription = string.Empty;
         PrimaryContactName = string.Empty;
         PrimaryContactEmail = string.Empty;
         TechnicalContactName = string.Empty;
@@ -96,10 +138,22 @@ public class EscalationEntity  : PortalEntity
 
 }
 
-public class IndustryEntity : PortalEntity
+public class EscalationListEntity : PortalEntity
+{
+    public DateTime CreatedDate { get; set; }
+
+    public EscalationListEntity()
+    {
+        CreatedDate = DateTime.UtcNow;
+
+    }
+
+}
+
+public class IndustryEntity : PortalLookupEntity
 { }
 
-public class IntegrationEntity : PortalEntity
+public class IntegrationEntity : PortalLookupEntity
 {
     [StringLength(127)]
     public override string Description { get; set; }
@@ -119,12 +173,6 @@ public class IntegrationEntity : PortalEntity
 
     public int RetryCount { get; set; }
 
-    public CustomerEntity? Customer { get; set; }
-
-    public IntegrationTypeEntity? IntegrationType { get; set; }
-
-    public IntegrationStatusEntity? CurrentStatus { get; set; }
-
     public IntegrationEntity()
     {
         Description = string.Empty;
@@ -134,6 +182,49 @@ public class IntegrationEntity : PortalEntity
         LastSuccessfulSync = new DateTime(1900, 1, 1);
         LastFailedSync = new DateTime(1900, 1, 1);
         RetryCount = 0;
+
+    }
+
+}
+
+public class IntegrationListEntity : PortalLookupEntity
+{
+    [StringLength(127)]
+    public override string Description { get; set; }
+
+    [Required]
+    public Int64 CustomerId { get; set; }
+
+    [Required]
+    public Int64 IntegrationTypeId { get; set; }
+
+    [Required]
+    public Int64 CurrentStatusId { get; set; }
+
+    public DateTime LastSuccessfulSync { get; set; }
+
+    public DateTime LastFailedSync { get; set; }
+
+    public int RetryCount { get; set; }
+
+    public string CustomerDescription { get; set; }
+
+    public string IntegrationTypeDescription { get; set; }
+
+    public string CurrentStatusDescription { get; set; }
+
+    public IntegrationListEntity()
+    {
+        Description = string.Empty;
+        CustomerId = 0;
+        IntegrationTypeId = 0;
+        CurrentStatusId = 0;
+        LastSuccessfulSync = new DateTime(1900, 1, 1);
+        LastFailedSync = new DateTime(1900, 1, 1);
+        RetryCount = 0;
+        CustomerDescription = string.Empty;
+        IntegrationTypeDescription = string.Empty;
+        CurrentStatusDescription = string.Empty;
 
     }
 
@@ -152,8 +243,6 @@ public class IntegrationErrorEntity : PortalEntity
     [Required]
     public DateTime ErrorTime { get; set; }
 
-    public IntegrationEntity? Integration {  get; set; }
-
     public IntegrationErrorEntity()
     {
         IntegrationId = 0;
@@ -165,10 +254,36 @@ public class IntegrationErrorEntity : PortalEntity
 
 }
 
-public class IntegrationStatusEntity : PortalEntity
+public class IntegrationErrorListItemEntity : PortalEntity
+{
+    public Int64 IntegrationId { get; set; }
+
+    [StringLength(127)]
+    public string IntegrationDescription { get; set; }
+
+    [StringLength(1027)]
+    public string ErrorMessage { get; set; }
+
+    public string StackTrace { get; set; }
+
+    public DateTime ErrorTime { get; set; }
+
+    public IntegrationErrorListItemEntity()
+    {
+        IntegrationId = 0;
+        IntegrationDescription = string.Empty;
+        ErrorMessage = string.Empty;
+        StackTrace = string.Empty;
+        ErrorTime = DateTime.UtcNow;
+
+    }
+
+}
+
+public class IntegrationStatusEntity : PortalLookupEntity
 { }
 
-public class IntegrationTypeEntity : PortalEntity
+public class IntegrationTypeEntity : PortalLookupEntity
 { }
 
 public class LinkProjectPhaseEntity : PortalEntity
@@ -183,10 +298,6 @@ public class LinkProjectPhaseEntity : PortalEntity
 
     public int Order { get; set; }
 
-    public ProjectEntity? Project { get; set; }
-
-    public PhaseEntity? Phase { get; set; }
-
     public LinkProjectPhaseEntity()
     {
         ProjectId = 0;
@@ -198,10 +309,39 @@ public class LinkProjectPhaseEntity : PortalEntity
 
 }
 
-public class PhaseEntity : PortalEntity
+public class LinkProjectPhaseListEntity : PortalEntity
+{
+    [Required]
+    public Int64 ProjectId { get; set; }
+
+    [Required]
+    public Int64 PhaseId { get; set; }
+
+    public decimal Percentage { get; set; }
+
+    public int Order { get; set; }
+
+    public string ProjectDescription { get; set; }
+
+    public string PhaseDescription { get; set; }
+
+    public LinkProjectPhaseListEntity()
+    {
+        ProjectId = 0;
+        PhaseId = 0;
+        Percentage = 0;
+        Order = 0;
+        ProjectDescription = string.Empty;
+        PhaseDescription = string.Empty;
+
+    }
+
+}
+
+public class PhaseEntity : PortalLookupEntity
 { }
 
-public class ProjectEntity : PortalEntity
+public class ProjectEntity : PortalLookupEntity
 {
     [Required]
     public Int64 CustomerId { get; set; }
@@ -214,22 +354,39 @@ public class ProjectEntity : PortalEntity
 
     public DateTime ActualGoLiveDate { get; set; }
 
-    public CustomerEntity? Customer { get; set; }
-
-    public PhaseEntity? CurrentPhase { get; set; }
-
-    public List<LinkProjectPhaseEntity> Phases { get; set; }
-
-    public List<ProjectNoteEntity> Notes { get; set; }
-
     public ProjectEntity()
     {
         CustomerId = 0;
         CurrentPhaseId = 0;
-        Phases = new List<LinkProjectPhaseEntity>();
-        Notes = new List<ProjectNoteEntity>();
         TargetGoLiveDate = DateTime.UtcNow;
         ActualGoLiveDate = new DateTime(1900, 1, 1);
+
+    }
+
+}
+
+public class ProjectListEntity : PortalLookupEntity
+{
+    public Int64 CurrentPhase { get; set; }
+
+    public Int64 CustomerId { get; set; }
+
+    public DateTime TargetGoLiveDate { get; set; }
+
+    public DateTime ActualGoLiveDate { get; set; }
+
+    public string CustomerDescription { get; set; }
+
+    public string CurrentPhaseDescription { get; set; }
+
+    public ProjectListEntity()
+    {
+        CurrentPhase = 0;
+        CustomerId = 0;
+        TargetGoLiveDate = DateTime.UtcNow;
+        ActualGoLiveDate = new DateTime(1900, 1, 1);
+        CustomerDescription = string.Empty;
+        CurrentPhaseDescription = string.Empty;
 
     }
 
@@ -245,8 +402,6 @@ public class ProjectNoteEntity : PortalEntity
 
     public DateTime CreateTime { get; set; }
 
-    public ProjectEntity? Project { get; set; }
-
     public ProjectNoteEntity()
     {
         ProjectId = 0;
@@ -257,15 +412,14 @@ public class ProjectNoteEntity : PortalEntity
 
 }
 
-public class SeverityEntity : PortalEntity
+public class SeverityEntity : PortalLookupEntity
 { }
 
-public class SupportStatusEntity : PortalEntity
+public class SupportStatusEntity : PortalLookupEntity
 { }
 
 public class TicketEntity : PortalEntity
 {
-
     [StringLength(1023)]
     public override string Description { get; set; }
 
@@ -278,10 +432,10 @@ public class TicketEntity : PortalEntity
     [Required]
     public Int64 SeverityId { get; set; }
 
-    public Int64 EscalationId { get; set; }
-
     [Required]
     public Int64 StatusId { get; set; }
+
+    public Int64 EscalationId { get; set; }
 
     public string Reproduce { get; set; }
 
@@ -298,18 +452,6 @@ public class TicketEntity : PortalEntity
 
     public string Resolution { get; set; }
 
-    public CustomerEntity? Customer { get; set; }
-
-    public IntegrationEntity? Integration { get; set; }
-
-    public SeverityEntity? Severity { get; set; }
-
-    public EscalationEntity? Escalation { get; set; }
-
-    public SupportStatusEntity? Status { get; set; }
-
-    public List<TicketNoteEntity> Notes { get; set; }
-
     public TicketEntity()
     {
         Description = string.Empty;
@@ -318,13 +460,75 @@ public class TicketEntity : PortalEntity
         SeverityId = 0;
         StatusId = 0;
         EscalationId = 0;
-        Notes = new List<TicketNoteEntity>();
         Reproduce = string.Empty;
         ReportedBy = string.Empty;
         AssignedTo = string.Empty;
         CreatedDate = DateTime.UtcNow;
         ResolutionDate = new DateTime(1900, 1, 1);
         Resolution = string.Empty;
+
+    }
+
+}
+
+public class TicketListEntity : PortalEntity
+{
+    [StringLength(1023)]
+    public override string Description { get; set; }
+
+    public Int64 CustomerId { get; set; }
+
+    public Int64 IntegrationId { get; set; }
+
+    public Int64 SeverityId { get; set; }
+
+    public Int64 StatusId { get; set; }
+
+    public Int64 EscalationId { get; set; }
+
+    public string Reproduce { get; set; }
+
+    [StringLength(63)]
+    public string ReportedBy { get; set; }
+
+    [StringLength(63)]
+    public string AssignedTo { get; set; }
+
+    public DateTime CreatedDate { get; set; }
+
+    public DateTime ResolutionDate { get; set; }
+
+    public string Resolution { get; set; }
+
+    public string CustomerDescription { get; set; }
+
+    public string IntegrationDescription { get; set; }
+
+    public string SeverityDescription { get; set; }
+
+    public string CurrentStatusDescription { get; set; }
+
+    public string EscalationDescription { get; set; }
+
+    public TicketListEntity()
+    {
+        Description = string.Empty;
+        CustomerId = 0;
+        IntegrationId = 0;
+        SeverityId = 0;
+        StatusId = 0;
+        EscalationId = 0;
+        Reproduce = string.Empty;
+        ReportedBy = string.Empty;
+        AssignedTo = string.Empty;
+        CreatedDate = DateTime.UtcNow;
+        ResolutionDate = new DateTime(1900, 1, 1);
+        Resolution = string.Empty;
+        CustomerDescription = string.Empty;
+        IntegrationDescription = string.Empty;
+        SeverityDescription = string.Empty;
+        CurrentStatusDescription = string.Empty;
+        EscalationDescription = string.Empty;
 
     }
 
@@ -339,8 +543,6 @@ public class TicketNoteEntity : PortalEntity
     public string Note { get; set; }
 
     public DateTime CreateTime { get; set; }
-
-    public TicketEntity? Ticket { get; set; }
 
     public TicketNoteEntity()
     {

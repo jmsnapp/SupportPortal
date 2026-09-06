@@ -20,6 +20,7 @@ namespace SupportPortalTests.Controllers;
 [TestClass]
 public class IndustriesControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -53,9 +54,9 @@ public class IndustriesControllerTests
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        IndustryEntity entity = new IndustryEntity { Id = 1L, Name = "Open" };
+        Industry entity = new Industry { Id = 1L, Name = "DEFAULT", Description = "Default", Deleted = false };
 
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
@@ -66,15 +67,15 @@ public class IndustriesControllerTests
         var model = result!.Value as Industry;
         Assert.IsNotNull(model);
         Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual("DEFAULT", model.Name);
 
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((IndustryEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((Industry?)null);
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
@@ -87,36 +88,36 @@ public class IndustriesControllerTests
     [TestMethod]
     public async Task GetByName_ReturnsOk_WhenFound()
     {
-        IndustryEntity entity = new IndustryEntity { Id = 2L, Name = "Closed" };
+        Industry entity = new Industry { Id = 2L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
-        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
+        repoMock.Setup(r => r.GetByNameAsync("DEFAULT", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
-        var result = await controller.GetByName("Closed") as OkObjectResult;
+        var result = await controller.GetByName("DEFAULT") as OkObjectResult;
 
         Assert.IsNotNull(result);
         var model = result!.Value as Industry;
         Assert.IsNotNull(model);
         Assert.AreEqual(2L, model.Id);
-        Assert.AreEqual("Closed", model.Name);
+        Assert.AreEqual("DEFAULT", model.Name);
 
     }
 
     [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        List<IndustryEntity> entities = new List<IndustryEntity>
+        List<Industry> entities = new List<Industry>
         {
-            new IndustryEntity { Id = 1L, Name = "A" },
-            new IndustryEntity { Id = 2L, Name = "B" },
+            new Industry { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true },
+            new Industry { Id = 1L, Name = "AVIATION", Description = "Aviation", Deleted = false  }
         };
 
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<IndustryEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((List<Industry>)entities));
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
@@ -127,23 +128,23 @@ public class IndustriesControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        List<IndustryEntity> entities = new List<IndustryEntity>
+        List<Industry> entities = new List<Industry>
         {
-            new IndustryEntity { Id = 3L, Name = "Active1" },
-            new IndustryEntity { Id = 4L, Name = "Active2" },
+            new Industry { Id = 1L, Name = "AVIATION", Description = "Aviation", Deleted = false  },
+            new Industry { Id = 2L, Name = "CONGLOMERATE", Description = "Conglomerate", Deleted = false  }
         };
 
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<IndustryEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(((List<Industry>)entities));
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
@@ -154,22 +155,20 @@ public class IndustriesControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as Industry);
         Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        var entity = new IndustryEntity { Id = 2L, Name = "X" };
-        Industry updated = new Industry();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        var updated = new Industry { Id = 2L, Name = "X" };
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
@@ -178,14 +177,12 @@ public class IndustriesControllerTests
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((IndustryEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((Industry?)null);
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
-        var entity = new IndustryEntity { Id = 5L, Name = "Z" };
-        Industry updated = new Industry();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        var updated = new Industry { Id = 5L, Name = "MANUFACTURING", Description = "Manufacturing", Deleted = false };
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -195,32 +192,28 @@ public class IndustriesControllerTests
     [TestMethod]
     public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        IndustryEntity existing = new IndustryEntity { Id = 6L, Name = "Before" };
+        Industry existing = new Industry { Id = 6L, Name = "MEDIA", Description = "Media", Deleted = false };
 
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<IndustryEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<IndustryEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
-        var entity = new IndustryEntity { Id = 6L, Name = "After" };
-        Industry updated = new Industry();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        var updated = new Industry { Id = 6L, Name = "MEDIA", Description = "Media", Deleted = false };
         var result = await controller.Update(6L, updated);
 
-        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+        Assert.IsNull(result.Result, "PUT should answer with the Id, not a bare status");
 
         Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
-        repoMock.Verify(r => r.Update(It.IsAny<IndustryEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<IndustryEntity>(), It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
         var result = await controller.Create(null as Industry);
@@ -232,22 +225,23 @@ public class IndustriesControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        IndustryEntity toCreate = new IndustryEntity { Id = 7L , Name = "New" };
+        Industry toCreate = new Industry { Id = 7L, Name = "TECHNOLOGY", Description = "Technology", Deleted = false };
 
-        Mock<IGenericRepository<IndustryEntity>> repoMock = new Mock<IGenericRepository<IndustryEntity>>();
-        repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        Industry saved = new Industry { Id = 7L, Name = "TECHNOLOGY", Description = "Technology", Deleted = false };
+
+        var repoMock = new Mock<IGenericRepository<Industry, Industry, IndustryEntity>>();
+        // Moq compares a literal argument with Equals, which IndustryEntity does not override,
+        // so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<IndustryEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(7L);
+        repoMock.Setup(r => r.GetByIdAsync(7L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
 
         IndustriesController controller = new IndustriesController(repoMock.Object);
 
-        Industry created = new Industry();
-        DBMapper.MapPortalEntity2Object(toCreate, created);
-
-        var result = await controller.Create(created) as CreatedAtActionResult;
+        var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<IndustryEntity, Industry>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<Industry, Industry, IndustryEntity>.GetById), result!.ActionName);
         var model = result.Value as Industry;
         Assert.IsNotNull(model);
         Assert.AreEqual(7L, model.Id);

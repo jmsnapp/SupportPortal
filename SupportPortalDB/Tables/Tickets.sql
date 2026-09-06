@@ -1,7 +1,6 @@
 ﻿CREATE TABLE [dbo].[Tickets]
 (
 	[Id] BIGINT NOT NULL IDENTITY(0,1) PRIMARY KEY, 
-    [Name] NVARCHAR(63) NOT NULL, 
     [Description] NVARCHAR(1023) NOT NULL DEFAULT '', 
     [Deleted] BIT NOT NULL DEFAULT 0, 
     [RowVersion] ROWVERSION NOT NULL, 
@@ -20,7 +19,6 @@
     CONSTRAINT [FK_Tickets_ToIntegration] FOREIGN KEY ([IntegrationId]) REFERENCES [dbo].[Integrations]([Id]), 
     CONSTRAINT [FK_Tickets_ToSeverity] FOREIGN KEY ([SeverityId]) REFERENCES [dbo].[Severities]([Id]), 
     CONSTRAINT [FK_Tickets_ToEscalation] FOREIGN KEY ([EscalationId]) REFERENCES [dbo].[Escalations]([Id]), 
-    CONSTRAINT [AK_Tickets_Name] UNIQUE ([Name]), 
     CONSTRAINT [FK_Tickets_ToStatus] FOREIGN KEY ([StatusId]) REFERENCES [dbo].[SupportStatuses]([Id])
 )
 

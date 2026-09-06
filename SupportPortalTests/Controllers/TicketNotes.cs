@@ -19,6 +19,7 @@ namespace SupportPortalTests.Controllers;
 [TestClass]
 public class TicketNotesControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -55,28 +56,28 @@ public class TicketNotesControllerTests
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        TicketNoteEntity entity = new TicketNoteEntity { Id = 1L, Name = "Open", TicketId = 1L };
+        TicketNote entity = new TicketNote { Id = 0L, Description = "Default Note", TicketId = 0L, Note = string.Empty, Deleted = true };
 
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(0L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
-        var result = await controller.GetById(1L) as OkObjectResult;
+        var result = await controller.GetById(0L) as OkObjectResult;
 
         Assert.IsNotNull(result);
         var model = result!.Value as TicketNote;
         Assert.IsNotNull(model);
-        Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual(0L, model.Id);
+        Assert.AreEqual("Default Note", model.Description);
 
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((TicketNoteEntity?)null);
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((TicketNote?)null);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
@@ -87,38 +88,19 @@ public class TicketNotesControllerTests
     }
 
     [TestMethod]
-    public async Task GetByName_ReturnsOk_WhenFound()
-    {
-        TicketNoteEntity entity = new TicketNoteEntity { Id = 2L, Name = "Closed", TicketId = 1L };
-
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
-
-        TicketNotesController controller = new TicketNotesController(repoMock.Object);
-
-        var result = await controller.GetByName("Closed") as OkObjectResult;
-
-        Assert.IsNotNull(result);
-        var model = result!.Value as TicketNote;
-        Assert.IsNotNull(model);
-        Assert.AreEqual(2L, model.Id);
-        Assert.AreEqual("Closed", model.Name);
-
-    }
-
-    [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        List<TicketNoteEntity> entities = new List<TicketNoteEntity>
-        {
-            new TicketNoteEntity { Id = 1L, Name = "A", TicketId = 1L },
-            new TicketNoteEntity { Id = 2L, Name = "B", TicketId = 1L },
-        };
+        TicketNote entity1 = new TicketNote { Id = 0L, Description = "Default Note", TicketId = 0L, Note = string.Empty, Deleted = true };
+        TicketNote entity2 = new TicketNote { Id = 1L, Description = "Customer Contact Warning", TicketId = 1L, Note = string.Empty, Deleted = false };
 
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
+        List<TicketNote> entities = new List<TicketNote>();
+        entities.Add(entity1);
+        entities.Add(entity2);
+
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<TicketNoteEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
@@ -129,23 +111,24 @@ public class TicketNotesControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        List<TicketNoteEntity> entities = new List<TicketNoteEntity>
-        {
-            new TicketNoteEntity { Id = 3L, Name = "Active1", TicketId = 1L },
-            new TicketNoteEntity { Id = 4L, Name = "Active2", TicketId = 1L },
-        };
+        TicketNote entity1 = new TicketNote { Id = 0L, Description = "Default Note", TicketId = 0L, Note = string.Empty, Deleted = true };
+        TicketNote entity2 = new TicketNote { Id = 1L, Description = "Customer Contact Warning", TicketId = 1L, Note = string.Empty, Deleted = false };
 
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
+        List<TicketNote> entities = new List<TicketNote>();
+        entities.Add(entity1);
+        entities.Add(entity2);
+
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<TicketNoteEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
@@ -156,22 +139,20 @@ public class TicketNotesControllerTests
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as TicketNote);
         Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        TicketNoteEntity entity = new TicketNoteEntity { Id = 2L, Name = "X", TicketId = 1L };
-        TicketNote updated = new TicketNote();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        TicketNote updated = new TicketNote { Id = 0L, Description = "Default Note", TicketId = 0L, Note = string.Empty, Deleted = true };
         var badResult2 = await controller.Update(1L, updated);
         Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
@@ -180,14 +161,12 @@ public class TicketNotesControllerTests
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((TicketNoteEntity?)null);
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((TicketNote?)null);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
-        TicketNoteEntity entity = new TicketNoteEntity { Id = 5L, Name = "Z", TicketId = 1L };
-        TicketNote updated = new TicketNote();
-        DBMapper.MapPortalEntity2Object(entity, updated);
+        TicketNote updated = new TicketNote { Id = 5L, Description = "Z", TicketId = 1L };
         var result = await controller.Update(5L, updated);
 
         Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
@@ -197,32 +176,28 @@ public class TicketNotesControllerTests
     [TestMethod]
     public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        TicketNoteEntity existing = new TicketNoteEntity { Id = 6L, Name = "Before", TicketId = 1L };
+        TicketNote existing = new TicketNote { Id = 0L, Description = "Default Note", TicketId = 0L, Note = string.Empty, Deleted = true };
 
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<TicketNoteEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(0L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<TicketNoteEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
-        TicketNoteEntity entity = new TicketNoteEntity { Id = 6L, Name = "After", TicketId = 1L };
-        TicketNote updated = new TicketNote();
-        DBMapper.MapPortalEntity2Object(entity, updated);
-        var result = await controller.Update(6L, updated);
+        TicketNote updated = new TicketNote { Id = 0L, Description = "TEST Note", TicketId = 0L, Note = string.Empty, Deleted = true };
+        var result = await controller.Update(0L, updated);
 
-        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+        Assert.IsNull(result.Result, "PUT should answer with the ID, not a bare status");
 
         Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
-        repoMock.Verify(r => r.Update(It.IsAny<TicketNoteEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<TicketNoteEntity>(), It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
         var result = await controller.Create(null as TicketNote);
@@ -234,22 +209,23 @@ public class TicketNotesControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        TicketNoteEntity toCreate = new TicketNoteEntity { Id = 7L, Name = "New", TicketId = 1L };
+        TicketNote toCreate = new TicketNote { Id = 2L, Description = "Test Note", TicketId = 0L, Note = string.Empty, Deleted = false };
 
-        Mock<IGenericRepository<TicketNoteEntity>> repoMock = new Mock<IGenericRepository<TicketNoteEntity>>();
-        repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        TicketNote saved = new TicketNote { Id = 7L, Description = "Test Note", TicketId = 0L, Note = string.Empty, Deleted = false };
+
+        var repoMock = new Mock<IGenericRepository<TicketNote, TicketNote, TicketNoteEntity>>();
+        // Moq compares a literal argument with Equals, which TicketNoteEntity does not override,
+        // so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<TicketNoteEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(7L);
+        repoMock.Setup(r => r.GetByIdAsync(7L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
 
         TicketNotesController controller = new TicketNotesController(repoMock.Object);
 
-        TicketNote created = new TicketNote();
-        DBMapper.MapPortalEntity2Object(toCreate, created);
-
-        var result = await controller.Create(created) as CreatedAtActionResult;
+        var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<TicketNoteEntity, TicketNote>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<TicketNote, TicketNote, TicketNoteEntity>.GetById), result!.ActionName);
         var model = result.Value as TicketNote;
         Assert.IsNotNull(model);
         Assert.AreEqual(7L, model.Id);

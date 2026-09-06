@@ -10,7 +10,7 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="SupportPortalAPI/SupportPortalAPI.csproj" />
-  <Project Path="SupportPortalDB/SupportPortalDB.sqlproj" Id="a2cdf5f6-5e7e-4d80-9f8e-cf3513bd36b8">
+  <Project Path="SupportPortalDB/SupportPortalDB.sqlproj" Id="ea2a9c03-5f27-4e4d-9c22-113db3d4d7ba">
     <Build />
     <Deploy />
   </Project>

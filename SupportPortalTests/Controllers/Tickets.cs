@@ -1,24 +1,26 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SupportPortalAPI.Controllers;
+using SupportPortalDomain.Models;
+using SupportPortalInfrastructure;
+using SupportPortalInfrastructure.Entities;
+using SupportPortalInfrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.AspNetCore.Mvc;
-using Moq;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
-using SupportPortalAPI.Controllers;
-using SupportPortalInfrastructure.Entities;
-using SupportPortalInfrastructure.Repositories;
-using SupportPortalInfrastructure;
-using SupportPortalDomain.Models;
 
 namespace SupportPortalTests.Controllers;
 
 [TestClass]
 public class TicketsControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -55,27 +57,44 @@ public class TicketsControllerTests
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        TicketEntity entity = new TicketEntity { Id = 1L, Name = "Open", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
+        Industry newIndustry = new Industry { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationStatus newIntegrationStatus = new IntegrationStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationType newType = new IntegrationType { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Customer newCustomer = new Customer { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Integration newIntegration = new Integration { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        SupportStatus newSupportStatus = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Severity newSeverity = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Escalation newEscalation = new Escalation { Id = 0L, Description = "Default", Deleted = true };
+        Ticket newTicket = new Ticket { Id = 1L, Description = "Default", Deleted = true };
+        newCustomer.Industry = newIndustry;
+        newIntegration.Customer = newCustomer;
+        newIntegration.CurrentStatus = newIntegrationStatus;
+        newIntegration.Type = newType;
+        newTicket.Status = newSupportStatus;
+        newTicket.Severity = newSeverity;
+        newTicket.Customer = newCustomer;
+        newTicket.Escalation = newEscalation;
+        newTicket.Integration = newIntegration;
 
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(newTicket);
 
         TicketsController controller = new TicketsController(repoMock.Object);
-        var result = await controller.GetById(1) as OkObjectResult;
+        var result = await controller.GetById(1L) as OkObjectResult;
 
         Assert.IsNotNull(result);
         var model = result!.Value as Ticket;
         Assert.IsNotNull(model);
         Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual("Default", model.Description);
 
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((TicketEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((Ticket?)null);
 
         TicketsController controller = new TicketsController(repoMock.Object);
 
@@ -86,92 +105,90 @@ public class TicketsControllerTests
     }
 
     [TestMethod]
-    public async Task GetByName_ReturnsOk_WhenFound()
-    {
-        TicketEntity entity = new TicketEntity { Id = 2L, Name = "Closed", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
-
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.GetByNameAsync("Closed", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
-
-        TicketsController controller = new TicketsController(repoMock.Object);
-
-        var result = await controller.GetByName("Closed") as OkObjectResult;
-
-        Assert.IsNotNull(result);
-        var model = result!.Value as Ticket;
-        Assert.IsNotNull(model);
-        Assert.AreEqual(2L, model.Id);
-        Assert.AreEqual("Closed", model.Name);
-
-    }
-
-    [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        List<TicketEntity> entities = new List<TicketEntity>
-        {
-            new TicketEntity { Id = 1L, Name = "A", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
-            new TicketEntity { Id = 2L, Name = "B", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
-        };
+        TicketListItem newTicket1 = new TicketListItem { Id = 0L, CustomerId = 0, IntegrationId = 0, SeverityId = 0, EscalationId = 0, StatusId = 0, Description = "Default", CustomerDescription = "Default", IntegrationDescription = "Default", SeverityDescription = "Default", EscalationDescription = "Default", StatusDescription = "Default" };
+        TicketListItem newTicket2 = new TicketListItem { Id = 1L, CustomerId = 0, IntegrationId = 0, SeverityId = 0, EscalationId = 0, StatusId = 0, Description = "Lex2Doom integration down", CustomerDescription = "Default", IntegrationDescription = "Default", SeverityDescription = "Default", EscalationDescription = "Default", StatusDescription = "Default" };
 
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
+        List<TicketListItem> entities = new List<TicketListItem>();
+        entities.Add(newTicket1);
+        entities.Add(newTicket2);
+
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<TicketEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
         TicketsController controller = new TicketsController(repoMock.Object);
 
-        ActionResult<PagedResult<Ticket>> result = await controller.GetAll();
+        ActionResult<PagedResult<TicketListItem>> result = await controller.GetAll();
 
-        PagedResult<Ticket> page = result.Value!;
+        PagedResult<TicketListItem> page = result.Value!;
         Assert.IsNotNull(page);
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, true, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        List<TicketEntity> entities = new List<TicketEntity>
-        {
-            new TicketEntity { Id = 3L, Name = "Active1", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
-            new TicketEntity { Id = 4L, Name = "Active2", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L },
-        };
+        TicketListItem newTicket1 = new TicketListItem { Id = 0L, CustomerId = 0, IntegrationId = 0, SeverityId = 0, EscalationId = 0, StatusId = 0, Description = "Default", CustomerDescription = "Default", IntegrationDescription = "Default", SeverityDescription = "Default", EscalationDescription = "Default", StatusDescription = "Default" };
+        TicketListItem newTicket2 = new TicketListItem { Id = 1L, CustomerId = 0, IntegrationId = 0, SeverityId = 0, EscalationId = 0, StatusId = 0, Description = "Lex2Doom integration down", CustomerDescription = "Default", IntegrationDescription = "Default", SeverityDescription = "Default", EscalationDescription = "Default", StatusDescription = "Default" };
 
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
+        List<TicketListItem> entities = new List<TicketListItem>();
+        entities.Add(newTicket1);
+        entities.Add(newTicket2);
+
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
         repoMock
-            .Setup(r => r.GetPageAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(((IReadOnlyList<TicketEntity>)entities, entities.Count));
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
         TicketsController controller = new TicketsController(repoMock.Object);
 
-        ActionResult<PagedResult<Ticket>> result = await controller.GetAllActive();
+        ActionResult<PagedResult<TicketListItem>> result = await controller.GetAllActive();
 
-        PagedResult<Ticket> page = result.Value!;
+        PagedResult<TicketListItem> page = result.Value!;
         Assert.IsNotNull(page);
         CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
         Assert.AreEqual(entities.Count, page.TotalCount);
 
-        repoMock.Verify(r => r.GetPageAsync(0, 50, false, It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
         TicketsController controller = new TicketsController(repoMock.Object);
 
         var badResult1 = await controller.Update(1L, null as Ticket);
         Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        TicketEntity entity = new TicketEntity { Id = 2L, Name = "X" };
-        Ticket updated = new Ticket();
-        DBMapper.MapPortalEntity2Object(entity, updated);
-        var badResult2 = await controller.Update(1L, updated);
+        Industry newIndustry = new Industry { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationStatus newIntegrationStatus = new IntegrationStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationType newType = new IntegrationType { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Customer newCustomer = new Customer { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Integration newIntegration = new Integration { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        SupportStatus newSupportStatus = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Severity newSeverity = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Escalation newEscalation = new Escalation { Id = 0L, Description = "Default", Deleted = true };
+        Ticket newTicket = new Ticket { Id = 0L, Description = "Default", Deleted = true };
+        newCustomer.Industry = newIndustry;
+        newIntegration.Customer = newCustomer;
+        newIntegration.CurrentStatus = newIntegrationStatus;
+        newIntegration.Type = newType;
+        newTicket.Status = newSupportStatus;
+        newTicket.Severity = newSeverity;
+        newTicket.Customer = newCustomer;
+        newTicket.Escalation = newEscalation;
+        newTicket.Integration = newIntegration;
+
+        var badResult2 = await controller.Update(1L, newTicket);
         Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
     }
@@ -179,15 +196,31 @@ public class TicketsControllerTests
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((TicketEntity?)null);
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((Ticket?)null);
 
         TicketsController controller = new TicketsController(repoMock.Object);
 
-        TicketEntity entity = new TicketEntity { Id = 5L, Name = "Z", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
-        Ticket updated = new Ticket();
-        DBMapper.MapPortalEntity2Object(entity, updated);
-        var result = await controller.Update(5L, updated);
+        Industry newIndustry = new Industry { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationStatus newIntegrationStatus = new IntegrationStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationType newType = new IntegrationType { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Customer newCustomer = new Customer { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Integration newIntegration = new Integration { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        SupportStatus newSupportStatus = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Severity newSeverity = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Escalation newEscalation = new Escalation { Id = 0L, Description = "Default", Deleted = true };
+        Ticket newTicket = new Ticket { Id = 5L, Description = "Default", Deleted = true };
+        newCustomer.Industry = newIndustry;
+        newIntegration.Customer = newCustomer;
+        newIntegration.CurrentStatus = newIntegrationStatus;
+        newIntegration.Type = newType;
+        newTicket.Status = newSupportStatus;
+        newTicket.Severity = newSeverity;
+        newTicket.Customer = newCustomer;
+        newTicket.Escalation = newEscalation;
+        newTicket.Integration = newIntegration;
+
+        var result = await controller.Update(5L, newTicket);
 
         Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
 
@@ -196,32 +229,53 @@ public class TicketsControllerTests
     [TestMethod]
     public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        TicketEntity existing = new TicketEntity { Id = 6L, Name = "Before", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
+        Industry newIndustry = new Industry { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationStatus newIntegrationStatus = new IntegrationStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationType newType = new IntegrationType { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Customer newCustomer = new Customer { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Integration newIntegration = new Integration { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        SupportStatus newSupportStatus = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Severity newSeverity = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Escalation newEscalation = new Escalation { Id = 0L, Description = "Default", Deleted = true };
+        Ticket newTicket = new Ticket { Id = 0L, Description = "Default", Deleted = true };
+        newCustomer.Industry = newIndustry;
+        newIntegration.Customer = newCustomer;
+        newIntegration.CurrentStatus = newIntegrationStatus;
+        newIntegration.Type = newType;
+        newTicket.Status = newSupportStatus;
+        newTicket.Severity = newSeverity;
+        newTicket.Customer = newCustomer;
+        newTicket.Escalation = newEscalation;
+        newTicket.Integration = newIntegration;
 
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<TicketEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        TicketEntity updated = new TicketEntity();
+        DBMapper.MapTicket2TicketEntity(newTicket, ref updated);
+
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(0L, It.IsAny<CancellationToken>())).ReturnsAsync(newTicket);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<TicketEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
         TicketsController controller = new TicketsController(repoMock.Object);
 
-        TicketEntity entity = new TicketEntity { Id = 6L, Name = "After", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
-        Ticket updated = new Ticket();
-        DBMapper.MapPortalEntity2Object(entity, updated);
-        var result = await controller.Update(6L, updated);
+        Ticket updatedTicket = new Ticket { Id = 0L, Description = "Test", Deleted = true };
+        updatedTicket.Status = newSupportStatus;
+        updatedTicket.Severity = newSeverity;
+        updatedTicket.Customer = newCustomer;
+        updatedTicket.Escalation = newEscalation;
+        updatedTicket.Integration = newIntegration;
+        var result = await controller.Update(0L, updatedTicket);
 
-        Assert.IsNull(result.Result, "PUT should answer with the model, not a bare status");
+        Assert.IsNull(result.Result, "PUT should answer with the ID, not a bare status");
 
         Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
-        repoMock.Verify(r => r.Update(It.IsAny<TicketEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<TicketEntity>(), It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
         TicketsController controller = new TicketsController(repoMock.Object);
 
         var result = await controller.Create(null as Ticket);
@@ -233,24 +287,49 @@ public class TicketsControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        TicketEntity toCreate = new TicketEntity { Id = 7L, Name = "New", CustomerId = 1L, EscalationId = 1L, IntegrationId = 1L, SeverityId = 1L, StatusId = 1L };
+        Industry newIndustry = new Industry { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationStatus newIntegrationStatus = new IntegrationStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        IntegrationType newType = new IntegrationType { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Customer newCustomer = new Customer { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Integration newIntegration = new Integration { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        SupportStatus newSupportStatus = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Severity newSeverity = new Severity { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        Escalation newEscalation = new Escalation { Id = 0L, Description = "Default", Deleted = true };
+        newCustomer.Industry = newIndustry;
+        newIntegration.Customer = newCustomer;
+        newIntegration.CurrentStatus = newIntegrationStatus;
+        newIntegration.Type = newType;
 
-        Mock<IGenericRepository<TicketEntity>> repoMock = new Mock<IGenericRepository<TicketEntity>>();
-        repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        repoMock.Setup(r => r.GetByIdAsync(-1L, It.IsAny<CancellationToken>())).ReturnsAsync(toCreate);
+        Ticket toCreate = new Ticket { Id = 1L, Description = "Test", Deleted = true };
+        toCreate.Status = newSupportStatus;
+        toCreate.Severity = newSeverity;
+        toCreate.Customer = newCustomer;
+        toCreate.Escalation = newEscalation;
+        toCreate.Integration = newIntegration;
+
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        Ticket saved = new Ticket { Id = 1L, Description = "Test", Deleted = true };
+        saved.Status = newSupportStatus;
+        saved.Severity = newSeverity;
+        saved.Customer = newCustomer;
+        saved.Escalation = newEscalation;
+        saved.Integration = newIntegration;
+
+        var repoMock = new Mock<IGenericRepository<Ticket, TicketListItem, TicketEntity>>();
+        // Moq compares a literal argument with Equals, which TicketEntity does not override,
+        // so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<TicketEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(1L);
+        repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
 
         TicketsController controller = new TicketsController(repoMock.Object);
 
-        Ticket created = new Ticket();
-        DBMapper.MapPortalEntity2Object(toCreate, created);
-        var result = await controller.Create(created) as CreatedAtActionResult;
+        var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<TicketEntity, Ticket>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<Ticket, TicketListItem, TicketEntity>.GetById), result!.ActionName);
         var model = result.Value as Ticket;
         Assert.IsNotNull(model);
-        Assert.AreEqual(7, model.Id);
+        Assert.AreEqual(1L, model.Id);
 
     }
 

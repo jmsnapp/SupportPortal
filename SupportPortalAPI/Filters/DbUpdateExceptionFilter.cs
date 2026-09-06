@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace SupportPortalAPI.Filters
 {
     /// <summary>
-    /// Turns constraint violations raised by SaveChanges into the status code the caller
+    /// Turns constraint violations into the status code the caller
     /// deserves. Without this every duplicate Name and every bad foreign key surfaces as a
     /// 500, which tells a client nothing and hides real server faults among routine input
     /// mistakes.
@@ -34,7 +34,12 @@ namespace SupportPortalAPI.Filters
                     "Concurrent modification",
                     "The record was changed by someone else after you loaded it. Re-read it and reapply your change."),
 
-                DbUpdateException dbEx when dbEx.InnerException is SqlException sql => Translate(sql),
+                DbUpdateException dbEx when dbEx.InnerException is SqlException inner => Translate(inner),
+
+                // The stored-procedure repositories issue their commands straight through ADO,
+                // so their constraint violations arrive unwrapped rather than inside a
+                // DbUpdateException. Same fault, same status code.
+                SqlException sql => Translate(sql),
 
                 _ => null
             };

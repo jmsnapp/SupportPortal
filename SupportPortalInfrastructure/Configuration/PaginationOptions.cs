@@ -3,7 +3,7 @@ namespace SupportPortalInfrastructure.Configuration;
 public class PaginationOptions
 {
     /// <summary>
-    /// Maximum page size enforced by repositories. Defaults to 200 when not configured.
+    /// Defaults to 200 when not configured.
     /// </summary>
     public int MaxPageSize { get; set; } = 200;
 
