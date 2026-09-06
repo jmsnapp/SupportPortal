@@ -1,25 +1,28 @@
-using System.Linq;
-using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using SupportPortalDomain.Models;
+using SupportPortalInfrastructure.Data;
 using SupportPortalInfrastructure.Entities;
 
-namespace SupportPortalInfrastructure.Repositories;
-
-public interface IGenericRepository<PortalEntity>
+namespace SupportPortalInfrastructure.Repositories
 {
-    Task<IEnumerable<PortalEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    public interface IGenericRepository<PortalObject, PortalObject2, PortalEntity>
+    {
+        public Task<List<PortalObject2>> GetAllAsync(CancellationToken ct);
 
-    Task<IEnumerable<PortalEntity>> GetAllActiveAsync(CancellationToken cancellationToken = default);
+        public Task<List<PortalObject2>> GetAllActiveAsync(CancellationToken ct);
 
-    Task<PortalEntity?> GetByIdAsync(Int64 id, CancellationToken cancellationToken = default);
+        public Task<List<PortalObject2>> GetByParentIdAsync(Int64 parentId, CancellationToken ct);
 
-    Task<PortalEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
+        public Task<PortalObject> GetByIdAsync(Int64 id, CancellationToken ct);
 
-    Task AddAsync(PortalEntity entity, CancellationToken cancellationToken = default);
+        public Task<PortalObject> GetByNameAsync(string name, CancellationToken ct);
 
-    void Update(PortalEntity entity);
+        public Task<Int64> CreateAsync(PortalEntity entity, CancellationToken ct);
 
-    IQueryable<PortalEntity> Query();
+        public Task<Int64> UpdateAsync(PortalEntity entity, CancellationToken ct);
 
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    }
 
 }

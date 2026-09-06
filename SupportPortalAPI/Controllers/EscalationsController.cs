@@ -1,20 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
-using SupportPortalDomain;
+using Microsoft.Extensions.Options;
 using SupportPortalDomain.Models;
+using SupportPortalInfrastructure;
+using SupportPortalInfrastructure.Configuration;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
 using System.Threading.Tasks;
 
 namespace SupportPortalAPI.Controllers
 {
-    public class EscalationsController : GenericController<EscalationEntity, Escalation>
+    public class EscalationsController : GenericController<Escalation, Escalation, EscalationEntity>
     {
-        public EscalationsController(IGenericRepository<EscalationEntity> repo, DBMapper mapper) : base(repo, mapper) { }
+        public EscalationsController(IGenericRepository<Escalation, Escalation, EscalationEntity> repo, IOptions<PaginationOptions>? options = null) : base(repo, options) { }
 
-        protected override Task<Escalation> MapEntityToModelAsync(EscalationEntity entity)
-        {
-            var model = DBMapper.MapEscalationEntity2Escalation(entity);
-            return Task.FromResult(model);
-        }
+        protected override void MapModelToEntity(Escalation model, EscalationEntity entity) =>
+            DBMapper.MapEscalation2EscalationEntity(model, ref entity);
+
     }
+
 }

@@ -11,7 +11,7 @@ using System.Linq.Expressions;
 using SupportPortalAPI.Controllers;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
-using SupportPortalDomain;
+using SupportPortalInfrastructure;
 using SupportPortalDomain.Models;
 
 namespace SupportPortalTests.Controllers;
@@ -19,6 +19,7 @@ namespace SupportPortalTests.Controllers;
 [TestClass]
 public class SupportStatusesControllerTests
 {
+    private static readonly Microsoft.Extensions.Options.IOptions<SupportPortalInfrastructure.Configuration.PaginationOptions> _options = Microsoft.Extensions.Options.Options.Create(new SupportPortalInfrastructure.Configuration.PaginationOptions());
     // Helper classes to allow EF Core async LINQ extensions to work against in-memory IQueryable
     private class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
@@ -52,17 +53,15 @@ public class SupportStatusesControllerTests
 
     }
 
-    private DBMapper _mapper = new DBMapper();
-
     [TestMethod]
     public async Task GetById_ReturnsOk_WhenEntityFound()
     {
-        SupportStatusEntity entity = new SupportStatusEntity { Id = 1L, Name = "Open" };
+        SupportStatus entity = new SupportStatus { Id = 1L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
         repoMock.Setup(r => r.GetByIdAsync(1L, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
         var result = await controller.GetById(1L) as OkObjectResult;
 
@@ -70,17 +69,17 @@ public class SupportStatusesControllerTests
         var model = result!.Value as SupportStatus;
         Assert.IsNotNull(model);
         Assert.AreEqual(1L, model.Id);
-        Assert.AreEqual("Open", model.Name);
+        Assert.AreEqual("DEFAULT", model.Name);
 
     }
 
     [TestMethod]
     public async Task GetById_ReturnsNotFound_WhenEntityMissing()
     {
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((SupportStatusEntity?)null);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(99L, It.IsAny<CancellationToken>())).ReturnsAsync((SupportStatus?)null);
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
         var result = await controller.GetById(99L);
 
@@ -91,128 +90,137 @@ public class SupportStatusesControllerTests
     [TestMethod]
     public async Task GetByName_ReturnsOk_WhenFound()
     {
-        SupportStatusEntity entity = new SupportStatusEntity { Id = 2L, Name = "Closed" };
-        var list = new List<SupportStatusEntity> { entity }.AsQueryable();
+        SupportStatus entity = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(list);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        repoMock.Setup(r => r.GetByNameAsync("DEFAULT", It.IsAny<CancellationToken>())).ReturnsAsync(entity);
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        var result = await controller.GetByName("Closed") as OkObjectResult;
+        var result = await controller.GetByName("DEFAULT") as OkObjectResult;
 
         Assert.IsNotNull(result);
         var model = result!.Value as SupportStatus;
         Assert.IsNotNull(model);
-        Assert.AreEqual(2L, model.Id);
-        Assert.AreEqual("Closed", model.Name);
+        Assert.AreEqual(0L, model.Id);
+        Assert.AreEqual("DEFAULT", model.Name);
 
     }
 
     [TestMethod]
     public async Task GetAll_ReturnsMappedList()
     {
-        List<SupportStatusEntity> entities = new List<SupportStatusEntity>
-        {
-            new SupportStatusEntity { Id = 1L, Name = "A" },
-            new SupportStatusEntity { Id = 2L, Name = "B" },
-        };
+        SupportStatus entity1 = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
+        SupportStatus entity2 = new SupportStatus { Id = 1L, Name = "OPEN", Description = "Open", Deleted = false };
 
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+        List<SupportStatus> entities = new List<SupportStatus>();
+        entities.Add(entity1);
+        entities.Add(entity2);
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        repoMock
+            .Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
-        var result = await controller.GetAll() as OkObjectResult;
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        Assert.IsNotNull(result);
-        var models = result!.Value as IEnumerable<SupportStatus>;
-        Assert.IsNotNull(models);
-        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), models!.Select(m => m.Id).ToList());
+        ActionResult<PagedResult<SupportStatus>> result = await controller.GetAll();
+
+        PagedResult<SupportStatus> page = result.Value!;
+        Assert.IsNotNull(page);
+        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
+        Assert.AreEqual(entities.Count, page.TotalCount);
+
+        repoMock.Verify(r => r.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task GetAllActive_ReturnsMappedList()
     {
-        List<SupportStatusEntity> entities = new List<SupportStatusEntity>
-        {
-            new SupportStatusEntity { Id = 3L, Name = "Active1" },
-            new SupportStatusEntity { Id = 4L, Name = "Active2" },
-        };
+        SupportStatus entity1 = new SupportStatus { Id = 1L, Name = "OPEN", Description = "Open", Deleted = false };
+        SupportStatus entity2 = new SupportStatus { Id = 2L, Name = "IN_PROGRESS", Description = "In Progress", Deleted = false };
 
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>())).ReturnsAsync(entities);
+        List<SupportStatus> entities = new List<SupportStatus>();
+        entities.Add(entity1);
+        entities.Add(entity2);
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        repoMock
+            .Setup(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entities);
 
-        var result = await controller.GetAllActive() as OkObjectResult;
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        Assert.IsNotNull(result);
-        var models = result!.Value as IEnumerable<SupportStatus>;
-        Assert.IsNotNull(models);
-        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), models!.Select(m => m.Id).ToList());
+        ActionResult<PagedResult<SupportStatus>> result = await controller.GetAllActive();
+
+        PagedResult<SupportStatus> page = result.Value!;
+        Assert.IsNotNull(page);
+        CollectionAssert.AreEquivalent(entities.Select(e => e.Id).ToList(), page.Items.Select(m => m.Id).ToList());
+        Assert.AreEqual(entities.Count, page.TotalCount);
+
+        repoMock.Verify(r => r.GetAllActiveAsync(It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsBadRequest_OnNullOrIdMismatch()
     {
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        var badResult1 = await controller.Update(1L, null as SupportStatusEntity);
-        Assert.IsInstanceOfType(badResult1, typeof(BadRequestResult));
+        var badResult1 = await controller.Update(1L, null as SupportStatus);
+        Assert.IsInstanceOfType(badResult1.Result, typeof(BadRequestResult));
 
-        SupportStatusEntity updated = new SupportStatusEntity { Id = 2L, Name = "X" };
+        SupportStatus updated = new SupportStatus { Id = 2L, Name = "IN_PROGRESS", Description = "In Progress", Deleted = false };
         var badResult2 = await controller.Update(1L, updated);
-        Assert.IsInstanceOfType(badResult2, typeof(BadRequestResult));
+        Assert.IsInstanceOfType(badResult2.Result, typeof(BadRequestResult));
 
     }
 
     [TestMethod]
     public async Task Update_ReturnsNotFound_WhenExistingMissing()
     {
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((SupportStatusEntity?)null);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync((SupportStatus?)null);
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        SupportStatusEntity updated = new SupportStatusEntity { Id = 5L, Name = "Z" };
+        SupportStatus updated = new SupportStatus { Id = 5L, Name = "IN_PROGRESS", Description = "In Progress", Deleted = false };
         var result = await controller.Update(5L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NotFoundResult));
+        Assert.IsInstanceOfType(result.Result, typeof(NotFoundResult));
 
     }
 
     [TestMethod]
-    public async Task Update_ReturnsNoContent_OnSuccess()
+    public async Task Update_ReturnsSavedModel_OnSuccess()
     {
-        SupportStatusEntity existing = new SupportStatusEntity { Id = 6L, Name = "Before" };
+        SupportStatus existing = new SupportStatus { Id = 0L, Name = "DEFAULT", Description = "Default", Deleted = true };
 
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.GetByIdAsync(6L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        repoMock.Setup(r => r.Update(It.IsAny<SupportStatusEntity>())).Verifiable();
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        repoMock.Setup(r => r.GetByIdAsync(0L, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
+        repoMock.Setup(r => r.UpdateAsync(It.IsAny<SupportStatusEntity>(), It.IsAny<CancellationToken>())).Verifiable();
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        SupportStatusEntity updated = new SupportStatusEntity { Id = 6L, Name = "After" };
-        var result = await controller.Update(6L, updated);
+        SupportStatus updated = new SupportStatus { Id = 0L, Name = "TEST", Description = "Default", Deleted = true };
+        var result = await controller.Update(0L, updated);
 
-        Assert.IsInstanceOfType(result, typeof(NoContentResult));
-        repoMock.Verify(r => r.Update(It.IsAny<SupportStatusEntity>()), Times.Once);
-        repoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        Assert.IsNull(result.Result, "PUT should answer with the ID, not a bare status");
+
+        Assert.IsNotNull(result.Value, "the body carries the refreshed RowVersion so the caller can save again without re-reading");
+        repoMock.Verify(r => r.UpdateAsync(It.IsAny<SupportStatusEntity>(), It.IsAny<CancellationToken>()), Times.Once);
 
     }
 
     [TestMethod]
     public async Task Create_ReturnsBadRequest_WhenNull()
     {
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
-        var result = await controller.Create(null as SupportStatusEntity);
+        var result = await controller.Create(null as SupportStatus);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestResult));
 
@@ -221,21 +229,26 @@ public class SupportStatusesControllerTests
     [TestMethod]
     public async Task Create_ReturnsCreatedAtAction_OnSuccess()
     {
-        SupportStatusEntity toCreate = new SupportStatusEntity { Id = 7L, Name = "New" };
+        SupportStatus toCreate = new SupportStatus { Id = 5L, Name = "TEST", Description = "TEST", Deleted = false };
 
-        Mock<IGenericRepository<SupportStatusEntity>> repoMock = new Mock<IGenericRepository<SupportStatusEntity>>();
-        repoMock.Setup(r => r.AddAsync(toCreate, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        repoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        // Distinct from the request body: Create stamps Id = -1 on the model it is handed.
+        SupportStatus saved = new SupportStatus { Id = 5L, Name = "TEST", Description = "TEST", Deleted = false };
 
-        SupportStatusesController controller = new SupportStatusesController(repoMock.Object, _mapper);
+        var repoMock = new Mock<IGenericRepository<SupportStatus, SupportStatus, SupportStatusEntity>>();
+        // Moq compares a literal argument with Equals, which SupportStatusEntity does not
+        // override, so only It.IsAny matches the entity Create maps internally.
+        repoMock.Setup(r => r.CreateAsync(It.IsAny<SupportStatusEntity>(), It.IsAny<CancellationToken>())).ReturnsAsync(5L);
+        repoMock.Setup(r => r.GetByIdAsync(5L, It.IsAny<CancellationToken>())).ReturnsAsync(saved);
+
+        SupportStatusesController controller = new SupportStatusesController(repoMock.Object);
 
         var result = await controller.Create(toCreate) as CreatedAtActionResult;
 
         Assert.IsNotNull(result);
-        Assert.AreEqual(nameof(GenericController<SupportStatusEntity, SupportStatus>.GetById), result!.ActionName);
+        Assert.AreEqual(nameof(GenericController<SupportStatus, SupportStatus, SupportStatusEntity>.GetById), result!.ActionName);
         var model = result.Value as SupportStatus;
         Assert.IsNotNull(model);
-        Assert.AreEqual(7L, model.Id);
+        Assert.AreEqual(5L, model.Id);
 
     }
 

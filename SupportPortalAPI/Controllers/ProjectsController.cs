@@ -1,34 +1,33 @@
-using System.Threading.Tasks;
-using SupportPortalDomain;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SupportPortalDomain.Models;
+using SupportPortalInfrastructure;
+using SupportPortalInfrastructure.Configuration;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
+using System.Threading.Tasks;
 
 namespace SupportPortalAPI.Controllers
 {
-    public class ProjectsController : GenericController<ProjectEntity, Project>
+    public class ProjectsController : GenericController<Project, Project, ProjectEntity>
     {
-        private readonly ILinkProjectPhaseRepository _projectPhaseRepo;
-        private readonly IGenericRepository<PhaseEntity> _phaseRepo;
-        private readonly IProjectNoteRepository _projectNoteRepo;
+        public ProjectsController (IGenericRepository<Project, Project, ProjectEntity> repo, IOptions<PaginationOptions>? options = null) : base(repo, options)
+        { }
 
-        public ProjectsController(
-            IGenericRepository<ProjectEntity> repo,
-            ILinkProjectPhaseRepository projectPhaseRepo,
-            IGenericRepository<PhaseEntity> phaseRepo,
-            IProjectNoteRepository projectNoteRepo,
-            DBMapper mapper)
-            : base(repo, mapper)
+        // GET api/[controller]/by-name/{name}
+        [HttpGet("by-name/{name}")]
+        public virtual async Task<IActionResult> GetByName(string name, CancellationToken ct = default)
         {
-            _projectPhaseRepo = projectPhaseRepo;
-            _phaseRepo = phaseRepo;
-            _projectNoteRepo = projectNoteRepo;
+            var model = await _repo.GetByNameAsync(name, ct);
+            if (model == null) return NotFound();
+
+            return Ok(model);
+
         }
 
-        protected override async Task<Project> MapEntityToModelAsync(ProjectEntity entity)
-        {
-            var model = await _mapper.MapProjectEntity2ProjectAsync(entity, _projectPhaseRepo, _phaseRepo, _projectNoteRepo);
-            return model;
-        }
+        protected override void MapModelToEntity(Project model, ProjectEntity entity) =>
+            DBMapper.MapProject2ProjectEntity(model, ref entity);
+
     }
+
 }

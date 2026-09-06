@@ -1,37 +1,34 @@
-using System.Threading.Tasks;
-using SupportPortalDomain;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SupportPortalDomain.Models;
+using SupportPortalInfrastructure;
+using SupportPortalInfrastructure.Configuration;
 using SupportPortalInfrastructure.Entities;
 using SupportPortalInfrastructure.Repositories;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SupportPortalAPI.Controllers
 {
-    public class IntegrationsController : GenericController<IntegrationEntity, Integration>
+    public class IntegrationsController : GenericController<Integration, Integration, IntegrationEntity>
     {
-        private readonly IGenericRepository<IntegrationTypeEntity> _integrationTypeRepo;
-        private readonly IGenericRepository<IntegrationStatusEntity> _integrationStatusRepo;
-        private readonly IGenericRepository<CustomerEntity> _customerRepo;
-        private readonly IGenericRepository<IndustryEntity> _industryRepo;
+        public IntegrationsController(IGenericRepository<Integration, Integration, IntegrationEntity> repo, IOptions<PaginationOptions>? options = null) : base(repo, options)
+        { }
 
-        public IntegrationsController(
-            IGenericRepository<IntegrationEntity> repo,
-            IGenericRepository<IntegrationTypeEntity> integrationTypeRepo,
-            IGenericRepository<IntegrationStatusEntity> integrationStatusRepo,
-            IGenericRepository<CustomerEntity> customerRepo,
-            IGenericRepository<IndustryEntity> industryRepo,
-            DBMapper mapper)
-            : base(repo, mapper)
+        // GET api/[controller]/by-name/{name}
+        [HttpGet("by-name/{name}")]
+        public virtual async Task<IActionResult> GetByName(string name, CancellationToken ct = default)
         {
-            _integrationTypeRepo = integrationTypeRepo;
-            _integrationStatusRepo = integrationStatusRepo;
-            _customerRepo = customerRepo;
-            _industryRepo = industryRepo;
+            var model = await _repo.GetByNameAsync(name, ct);
+            if (model == null) return NotFound();
+
+            return Ok(model);
+
         }
 
-        protected override async Task<Integration> MapEntityToModelAsync(IntegrationEntity entity)
-        {
-            var model = await _mapper.MapIntegrationEntity2IntegrationAsync(entity, _integrationTypeRepo, _integrationStatusRepo, _customerRepo, _industryRepo);
-            return model;
-        }
+        protected override void MapModelToEntity(Integration model, IntegrationEntity entity) =>
+            DBMapper.MapIntegration2IntegrationEntity(model, ref entity);
+
     }
+
 }

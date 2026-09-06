@@ -17,8 +17,4 @@
     <Deterministic>False</Deterministic>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SupportPortalInfrastructure\SupportPortalInfrastructure.csproj" />
-  </ItemGroup>
-
 </Project>

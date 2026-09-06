@@ -6,11 +6,10 @@
     <Name>SupportPortalDB</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{a2cdf5f6-5e7e-4d80-9f8e-cf3513bd36b8}</ProjectGuid>
+    <ProjectGuid>{ea2a9c03-5f27-4e4d-9c22-113db3d4d7ba}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql170DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
-    <RootPath>
-    </RootPath>
+    <RootPath />
     <RootNamespace>SupportPortalDB</RootNamespace>
     <AssemblyName>SupportPortalDB</AssemblyName>
     <ModelCollation>1033, CI</ModelCollation>
@@ -46,10 +45,10 @@
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>ARM64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
-    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
     <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
     <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
   </PropertyGroup>
@@ -58,36 +57,127 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Tables" />
-    <Folder Include="StoredProcedures" />
     <Folder Include="SeedData" />
+    <Folder Include="StoredProcedures" />
+    <Folder Include="StoredProcedures\Customers" />
+    <Folder Include="StoredProcedures\Escalations" />
+    <Folder Include="StoredProcedures\Industries" />
+    <Folder Include="StoredProcedures\Integrations" />
+    <Folder Include="StoredProcedures\IntegrationStatuses" />
+    <Folder Include="StoredProcedures\IntegrationTypes" />
+    <Folder Include="StoredProcedures\LinkProjectPhase" />
+    <Folder Include="StoredProcedures\TicketNotes" />
+    <Folder Include="StoredProcedures\Phases" />
+    <Folder Include="StoredProcedures\Projects" />
+    <Folder Include="StoredProcedures\ProjectNotes" />
+    <Folder Include="StoredProcedures\Severities" />
+    <Folder Include="StoredProcedures\SupportStatuses" />
+    <Folder Include="StoredProcedures\Tickets" />
+    <Folder Include="StoredProcedures\IntegrationErrors" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\Industries.sql" />
     <Build Include="Tables\Customers.sql" />
-    <Build Include="Tables\Projects.sql" />
-    <Build Include="Tables\Phases.sql" />
-    <Build Include="Tables\LinkProjectPhases.sql" />
+    <Build Include="Tables\Escalations.sql" />
+    <Build Include="Tables\Industries.sql" />
+    <Build Include="Tables\IntegrationErrors.sql" />
     <Build Include="Tables\Integrations.sql" />
     <Build Include="Tables\IntegrationStatuses.sql" />
     <Build Include="Tables\IntegrationTypes.sql" />
-    <Build Include="Tables\IntegrationErrors.sql" />
+    <Build Include="Tables\LinkProjectPhases.sql" />
+    <Build Include="Tables\Phases.sql" />
     <Build Include="Tables\ProjectNotes.sql" />
+    <Build Include="Tables\Projects.sql" />
     <Build Include="Tables\Severities.sql" />
     <Build Include="Tables\SupportStatuses.sql" />
-    <Build Include="Tables\Tickets.sql" />
-    <Build Include="Tables\Escalations.sql" />
     <Build Include="Tables\TicketNotes.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <RefactorLog Include="SupportPortalDB.refactorlog" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
+    <Build Include="Tables\Tickets.sql" />
     <None Include="SeedData\SeedData.sql" />
+    <Build Include="StoredProcedures\Customers\uspCreateCustomer.sql" />
+    <Build Include="StoredProcedures\Escalations\uspCreateEscalation.sql" />
+    <Build Include="StoredProcedures\Industries\uspCreateIndustry.sql" />
+    <Build Include="StoredProcedures\Integrations\uspCreateIntegration.sql" />
+    <Build Include="StoredProcedures\IntegrationStatuses\uspCreateIntegrationStatus.sql" />
+    <Build Include="StoredProcedures\IntegrationTypes\uspCreateIntegrationType.sql" />
+    <Build Include="StoredProcedures\LinkProjectPhase\uspCreateLinkProjectPhase.sql" />
+    <Build Include="StoredProcedures\TicketNotes\uspCreateTicketNote.sql" />
+    <Build Include="StoredProcedures\Customers\uspGetAllActiveCustomers.sql" />
+    <Build Include="StoredProcedures\Escalations\uspGetAllActiveEscalations.sql" />
+    <Build Include="StoredProcedures\Industries\uspGetAllActiveIndustries.sql" />
+    <Build Include="StoredProcedures\Integrations\uspGetAllActiveIntegrations.sql" />
+    <Build Include="StoredProcedures\IntegrationStatuses\uspGetAllActiveIntegrationStatuses.sql" />
+    <Build Include="StoredProcedures\IntegrationTypes\uspGetAllActiveIntegrationTypes.sql" />
+    <Build Include="StoredProcedures\LinkProjectPhase\uspGetAllActiveLinkProjectPhases.sql" />
+    <Build Include="StoredProcedures\TicketNotes\uspGetAllActiveTicketNotes.sql" />
+    <Build Include="StoredProcedures\Phases\uspCreatePhase.sql" />
+    <Build Include="StoredProcedures\Phases\uspGetAllActivePhases.sql" />
+    <Build Include="StoredProcedures\Projects\uspCreateProject.sql" />
+    <Build Include="StoredProcedures\Projects\uspGetAllActiveProjects.sql" />
+    <Build Include="StoredProcedures\ProjectNotes\uspCreateProjectNote.sql" />
+    <Build Include="StoredProcedures\ProjectNotes\uspGetAllActiveProjectNotes.sql" />
+    <Build Include="StoredProcedures\Severities\uspCreateSeverity.sql" />
+    <Build Include="StoredProcedures\Severities\uspGetAllActiveSeverities.sql" />
+    <Build Include="StoredProcedures\SupportStatuses\uspCreateSupportStatus.sql" />
+    <Build Include="StoredProcedures\SupportStatuses\uspGetAllActiveSupportStatuses.sql" />
+    <Build Include="StoredProcedures\Tickets\uspCreateTicket.sql" />
+    <Build Include="StoredProcedures\Tickets\uspGetAllActiveTickets.sql" />
+    <Build Include="StoredProcedures\Customers\uspGetAllCustomers.sql" />
+    <Build Include="StoredProcedures\Escalations\uspGetAllEscalations.sql" />
+    <Build Include="StoredProcedures\Industries\uspGetAllIndustries.sql" />
+    <Build Include="StoredProcedures\Integrations\uspGetAllIntegrations.sql" />
+    <Build Include="StoredProcedures\IntegrationStatuses\uspGetAllIntegrationStatuses.sql" />
+    <Build Include="StoredProcedures\IntegrationTypes\uspGetAllIntegrationTypes.sql" />
+    <Build Include="StoredProcedures\LinkProjectPhase\uspGetAllLinkProjectPhases.sql" />
+    <Build Include="StoredProcedures\Phases\uspGetAllPhases.sql" />
+    <Build Include="StoredProcedures\ProjectNotes\uspGetAllProjectNotes.sql" />
+    <Build Include="StoredProcedures\Projects\uspGetAllProjects.sql" />
+    <Build Include="StoredProcedures\Severities\uspGetAllSeverities.sql" />
+    <Build Include="StoredProcedures\SupportStatuses\uspGetAllSupportStatuses.sql" />
+    <Build Include="StoredProcedures\Tickets\uspGetAllTickets.sql" />
+    <Build Include="StoredProcedures\TicketNotes\uspGetAllTicketNotes.sql" />
+    <Build Include="StoredProcedures\Customers\uspGetCustomerById.sql" />
+    <Build Include="StoredProcedures\Customers\uspGetCustomerByName.sql" />
+    <Build Include="StoredProcedures\Escalations\uspGetEscalationById.sql" />
+    <Build Include="StoredProcedures\Industries\uspGetIndustryById.sql" />
+    <Build Include="StoredProcedures\Industries\uspGetIndustryByName.sql" />
+    <Build Include="StoredProcedures\Integrations\uspGetIntegrationById.sql" />
+    <Build Include="StoredProcedures\Integrations\uspGetIntegrationByName.sql" />
+    <Build Include="StoredProcedures\IntegrationStatuses\uspGetIntegrationStatusById.sql" />
+    <Build Include="StoredProcedures\IntegrationStatuses\uspGetIntegrationStatusByName.sql" />
+    <Build Include="StoredProcedures\LinkProjectPhase\uspGetLinkProjectPhaseById.sql" />
+    <Build Include="StoredProcedures\Phases\uspGetPhaseById.sql" />
+    <Build Include="StoredProcedures\Phases\uspGetPhaseByName.sql" />
+    <Build Include="StoredProcedures\Projects\uspGetProjectById.sql" />
+    <Build Include="StoredProcedures\Projects\uspGetProjectByName.sql" />
+    <Build Include="StoredProcedures\ProjectNotes\uspGetProjectNoteById.sql" />
+    <Build Include="StoredProcedures\ProjectNotes\uspGetProjectNotesByProjectId.sql" />
+    <Build Include="StoredProcedures\LinkProjectPhase\uspGetProjectPhasesByProjectId.sql" />
+    <Build Include="StoredProcedures\SupportStatuses\uspGetSupportStatusById.sql" />
+    <Build Include="StoredProcedures\SupportStatuses\uspGetSupportStatusByName.sql" />
+    <Build Include="StoredProcedures\Tickets\uspGetTicketById.sql" />
+    <Build Include="StoredProcedures\TicketNotes\uspGetTicketNoteById.sql" />
+    <Build Include="StoredProcedures\TicketNotes\uspGetTicketNotesByTicketId.sql" />
+    <Build Include="StoredProcedures\Customers\uspUpdateCustomer.sql" />
+    <Build Include="StoredProcedures\Escalations\uspUpdateEscalation.sql" />
+    <Build Include="StoredProcedures\Industries\uspUpdateIndustry.sql" />
+    <Build Include="StoredProcedures\Integrations\uspUpdateIntegration.sql" />
+    <Build Include="StoredProcedures\IntegrationErrors\uspCreateIntegrationError.sql" />
+    <Build Include="StoredProcedures\IntegrationErrors\uspGetAllActiveIntegrationErrors.sql" />
+    <Build Include="StoredProcedures\IntegrationErrors\uspGetAllIntegrationErrors.sql" />
+    <Build Include="StoredProcedures\IntegrationErrors\uspGetIntegrationErrorById.sql" />
+    <Build Include="StoredProcedures\IntegrationErrors\uspUpdateIntegrationError.sql" />
+    <Build Include="StoredProcedures\IntegrationStatuses\uspUpdateIntegrationStatus.sql" />
+    <Build Include="StoredProcedures\LinkProjectPhase\uspUpdateLinkProjectPhase.sql" />
+    <Build Include="StoredProcedures\Projects\uspUpdateProject.sql" />
+    <Build Include="StoredProcedures\ProjectNotes\uspUpdateProjectNote.sql" />
+    <Build Include="StoredProcedures\SupportStatuses\uspUpdateSupportStatus.sql" />
+    <Build Include="StoredProcedures\Tickets\uspUpdateTicket.sql" />
+    <Build Include="StoredProcedures\TicketNotes\uspUpdateTicketNote.sql" />
+    <Build Include="StoredProcedures\IntegrationTypes\uspGetIntegrationTypeById.sql" />
+    <Build Include="StoredProcedures\IntegrationTypes\uspGetIntegrationTypeByName.sql" />
+    <Build Include="StoredProcedures\IntegrationTypes\uspUpdateIntegrationType.sql" />
+    <Build Include="StoredProcedures\Phases\uspUpdatePhase.sql" />
+    <Build Include="StoredProcedures\Severities\uspGetSeverityById.sql" />
+    <Build Include="StoredProcedures\Severities\uspGetSeverityByName.sql" />
+    <Build Include="StoredProcedures\Severities\uspUpdateSeverity.sql" />
   </ItemGroup>
 </Project>
